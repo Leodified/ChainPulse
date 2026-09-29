@@ -22,6 +22,7 @@ import { ProgressBar } from '../components/ui/ProgressBar';
 import { MOCK_STRATEGIES } from '../data/mockData';
 import type { RecoveryStrategy } from '../types/agents';
 import { approveStrategy, fetchStrategies } from '../services/recovery';
+import { StatusBeacon, LiveTelemetryBadge, SignalStream } from '../components/motion';
 
 function MetricPill({
   label,
@@ -286,9 +287,9 @@ export default function RecoveryPlansPage() {
 
   // Strategic Decision Room View
   return (
-    <div className="p-6 space-y-6 max-w-[1700px] mx-auto animate-fade-in">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1700px] w-full mx-auto animate-fade-in min-w-0">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono tracking-widest text-sky-400 uppercase font-semibold">
@@ -299,17 +300,52 @@ export default function RecoveryPlansPage() {
               HUMAN-IN-THE-LOOP DECISION MATRIX
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3 mt-1">
             Recovery Strategy Decision Room
-            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
-              <AlertTriangle size={12} />
+            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
+              <StatusBeacon variant="warning" size="sm" />
               Operational Authority Required
             </span>
           </h1>
         </div>
 
-        <div className="text-xs font-mono text-slate-400">
-          Disruption: <span className="text-rose-400 font-bold">DISR-SG-2026-001 (Singapore Port)</span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <LiveTelemetryBadge label="GOVERNANCE GATE" statusText="HUMAN AUDIT REQUIRED" variant="warning" />
+          <div className="text-xs font-mono text-slate-400">
+            Disruption: <span className="text-rose-400 font-bold">DISR-SG-2026-001</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Animated Branching Strategy Construction Pipeline */}
+      <div className="rounded-2xl bg-[#070b16] border border-white/[0.08] p-4 select-none">
+        <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.05] text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+          <span className="flex items-center gap-1.5">
+            <StatusBeacon variant="ai" size="sm" />
+            <span>AI STRATEGY FORMULATION & OPTIMIZATION PIPELINE</span>
+          </span>
+          <span className="text-emerald-400 font-bold">READY FOR OPERATIONAL AUTHORIZATION</span>
+        </div>
+        <div className="flex items-center justify-between gap-2 overflow-x-auto text-xs font-mono py-1">
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#0c1424] border border-rose-500/30 text-rose-300 shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
+            <span>DISRUPTION DETECTED</span>
+          </div>
+          <SignalStream status="critical" speed="fast" className="shrink-0" />
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#0c1424] border border-amber-500/30 text-amber-300 shrink-0">
+            <Scale size={12} className="text-amber-400" />
+            <span>3 CANDIDATES GENERATED</span>
+          </div>
+          <SignalStream status="warning" speed="normal" className="shrink-0" />
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#0c1424] border border-cyan-500/30 text-cyan-300 shrink-0">
+            <ShieldCheck size={12} className="text-cyan-400" />
+            <span>CONSTRAINTS OPTIMIZED</span>
+          </div>
+          <SignalStream status="ai" speed="fast" className="shrink-0" />
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-bold shadow-[0_0_15px_rgba(16,185,129,0.2)] shrink-0">
+            <CheckCircle size={12} className="text-emerald-400 animate-pulse" />
+            <span>HUMAN GATE COMMITMENT</span>
+          </div>
         </div>
       </div>
 
@@ -353,7 +389,7 @@ export default function RecoveryPlansPage() {
               className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 border flex flex-col justify-between cp-card-interactive ${
                 isSelected
                   ? 'bg-sky-500/10 border-sky-400 shadow-[0_0_36px_rgba(56,189,248,0.25)] scale-[1.02] z-10'
-                  : 'bg-[#080d19] border-white/[0.06] hover:border-white/20 opacity-80 hover:opacity-100'
+                  : 'bg-[#080d19] border-white/[0.06] hover:border-white/20 opacity-45 hover:opacity-85'
               }`}
             >
               <div className="space-y-4">

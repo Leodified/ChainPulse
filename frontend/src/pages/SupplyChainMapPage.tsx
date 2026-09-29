@@ -38,6 +38,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
 import { HelpCircle, ShieldCheck } from 'lucide-react';
+import { StatusBeacon, LiveTelemetryBadge } from '../components/motion';
 
 const TIER_CONSEQUENCES: Record<string, string> = {
   FREIGHT_HUB: 'Corridor Blocked · +12d',
@@ -446,6 +447,17 @@ export default function SupplyChainMapPage() {
     });
   }, [graph, filteredNodes, selectedNode]);
 
+  // Smooth camera flyTo when a node is selected
+  useEffect(() => {
+    if (selectedNode?.coordinates && mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo(
+        [selectedNode.coordinates.lat, selectedNode.coordinates.lng],
+        5,
+        { duration: 1.0 }
+      );
+    }
+  }, [selectedNode]);
+
   const TIERS: { key: TierFilter; label: string }[] = [
     { key: 'ALL', label: 'All Tiers' },
     { key: '1', label: 'Tier 1' },
@@ -467,14 +479,16 @@ export default function SupplyChainMapPage() {
           </div>
           <h1 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-3">
             Supply Chain Network Graph
-            <span className="text-xs font-mono font-normal px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20">
+            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 flex items-center gap-1.5">
+              <StatusBeacon variant="critical" size="sm" />
               Singapore Impact Active
             </span>
           </h1>
         </div>
 
         {/* Tracing Controls and Filters */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <LiveTelemetryBadge label="TOPOLOGY" statusText="5-TIER ACTIVE" variant="info" className="hidden xl:inline-flex" />
           <button
             onClick={triggerCausalTrace}
             disabled={isTracingCausality}
@@ -540,7 +554,7 @@ export default function SupplyChainMapPage() {
             </div>
 
             <div className="relative flex-1 overflow-auto p-2 bg-[#050812]">
-              <svg width="650" height="740" className="min-w-full">
+              <svg viewBox="0 0 650 740" className="w-full h-auto min-h-[540px] max-h-[740px] select-none">
                 {/* Column Headers */}
                 <g opacity={0.85}>
                   <text x={70} y={22} textAnchor="middle" fill="#64748b" fontSize={9} fontWeight="700" letterSpacing="0.08em" fontFamily="monospace">
@@ -561,7 +575,7 @@ export default function SupplyChainMapPage() {
                   <line x1={20} y1={30} x2={620} y2={30} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
                 </g>
 
-                {/* Edges */}
+                {/* Edges with Moving Energy Packets */}
                 {graph.edges.map((edge) => {
                   const from = graph.nodes.find((n) => n.id === edge.from);
                   const to = graph.nodes.find((n) => n.id === edge.to);
@@ -576,17 +590,28 @@ export default function SupplyChainMapPage() {
                   const isDimmedEdge = connectedNodeIds ? !isEdgeInChain : false;
 
                   return (
-                    <line
-                      key={edge.id}
-                      x1={from.x}
-                      y1={from.y}
-                      x2={to.x}
-                      y2={to.y}
-                      stroke={isEdgeInChain && connectedNodeIds ? '#38bdf8' : color}
-                      strokeWidth={isEdgeInChain && connectedNodeIds ? 2.5 : isDisrupted ? 2 : 1}
-                      strokeOpacity={isDimmedEdge ? 0.08 : isDisrupted ? 0.9 : isAtRisk ? 0.7 : 0.3}
-                      className={isDisrupted || (isEdgeInChain && connectedNodeIds) ? 'animate-signal-flow' : undefined}
-                    />
+                    <g key={edge.id}>
+                      <line
+                        x1={from.x}
+                        y1={from.y}
+                        x2={to.x}
+                        y2={to.y}
+                        stroke={isEdgeInChain && connectedNodeIds ? '#38bdf8' : color}
+                        strokeWidth={isEdgeInChain && connectedNodeIds ? 2.5 : isDisrupted ? 2 : 1}
+                        strokeOpacity={isDimmedEdge ? 0.08 : isDisrupted ? 0.9 : isAtRisk ? 0.7 : 0.3}
+                        className={isDisrupted || (isEdgeInChain && connectedNodeIds) ? 'animate-signal-flow' : undefined}
+                      />
+                      {/* Hardware-accelerated traveling SVG energy packet along active/disrupted routes */}
+                      {(isDisrupted || (isEdgeInChain && connectedNodeIds)) && (
+                        <circle r="3" fill={isDisrupted ? '#f43f5e' : '#38bdf8'} opacity="0.9">
+                          <animateMotion
+                            path={`M ${from.x} ${from.y} L ${to.x} ${to.y}`}
+                            dur={isDisrupted ? '1.8s' : '2.6s'}
+                            repeatCount="indefinite"
+                          />
+                        </circle>
+                      )}
+                    </g>
                   );
                 })}
 

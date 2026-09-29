@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { Download, FileText, Printer, Share2, ShieldCheck } from 'lucide-react';
+import { Download, FileText, Printer, Share2, ShieldCheck, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { StatusBeacon, LiveTelemetryBadge, ComputationSequence, MetricCounter } from '../components/motion';
 
 export default function ReportsPage() {
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  function handleRegenerate() {
+    setIsGenerating(true);
+    setTimeout(() => {
+      setIsGenerating(false);
+    }, 1400);
+  }
   const sections = [
     {
       title: 'Executive Summary',
@@ -56,9 +65,9 @@ export default function ReportsPage() {
   ];
 
   return (
-    <div className="p-6 space-y-6 max-w-[1400px] mx-auto animate-fade-in">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1400px] w-full mx-auto animate-fade-in min-w-0">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono tracking-widest text-sky-400 uppercase font-semibold">
@@ -67,7 +76,7 @@ export default function ReportsPage() {
             <span className="text-slate-600">/</span>
             <span className="text-[10px] font-mono text-slate-400 uppercase">AUDIT DOSSIER</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3 mt-1">
             ChainPulse Operational Intelligence Report
           </h1>
           <p className="text-xs font-mono text-slate-500 mt-1">
@@ -76,17 +85,30 @@ export default function ReportsPage() {
         </div>
 
         {/* Export and Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <LiveTelemetryBadge
+            label="DOSSIER STATUS"
+            statusText={isGenerating ? 'SYNTHESIZING' : 'AUDIT READY'}
+            variant={isGenerating ? 'warning' : 'success'}
+          />
+          <button
+            onClick={handleRegenerate}
+            disabled={isGenerating}
+            className="px-3 py-2 rounded-xl bg-[#080d19] border border-white/[0.08] hover:border-white/20 text-xs font-mono text-slate-300 flex items-center gap-2 transition-all cursor-pointer"
+          >
+            <RefreshCw size={13} className={isGenerating ? 'animate-spin text-cyan-400' : ''} />
+            <span>Re-Generate</span>
+          </button>
           <button
             onClick={() => window.print()}
-            className="px-3 py-2 rounded-xl bg-[#080d19] border border-white/[0.08] hover:border-white/20 text-xs font-mono text-slate-300 flex items-center gap-2 transition-all"
+            className="px-3 py-2 rounded-xl bg-[#080d19] border border-white/[0.08] hover:border-white/20 text-xs font-mono text-slate-300 flex items-center gap-2 transition-all cursor-pointer"
           >
             <Printer size={13} />
             <span>Print</span>
           </button>
           <button
             onClick={() => alert('Executive Brief PDF generation triggered for Jury Dossier.')}
-            className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_16px_rgba(56,189,248,0.3)]"
+            className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_16px_rgba(56,189,248,0.3)] cursor-pointer"
           >
             <Download size={13} />
             <span>Export PDF Dossier</span>
@@ -94,9 +116,25 @@ export default function ReportsPage() {
         </div>
       </div>
 
+      {/* Cinematic Report Computation Sequence */}
+      {isGenerating && (
+        <ComputationSequence
+          isRunning={isGenerating}
+          title="Executive Intelligence Dossier Engine"
+          stages={[
+            'Ingesting SAP S/4HANA Order Book & Line Item Commitments...',
+            'Compiling Agent Swarm Multi-Perspective Reasoning Logs...',
+            'Verifying Strategy B Balance Sheet Safeguards ($24.5M Saved)...',
+            'Finalizing Executive Audit Provenance Signatures...',
+          ]}
+          durationMs={1350}
+        />
+      )}
+
       {/* Meta Badges */}
       <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-xs font-mono px-2.5 py-1 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30 font-bold">
+        <span className="text-xs font-mono px-2.5 py-1 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30 font-bold flex items-center gap-1.5">
+          <StatusBeacon variant="critical" size="sm" />
           CRITICAL ACTIVE DISRUPTION
         </span>
         <span className="text-xs font-mono px-2.5 py-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
@@ -105,7 +143,8 @@ export default function ReportsPage() {
         <span className="text-xs font-mono px-2.5 py-1 rounded bg-[#080d19] text-slate-300 border border-white/[0.08]">
           Report ID: CP-RPT-2026-0926-001
         </span>
-        <span className="text-xs font-mono px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+        <span className="text-xs font-mono px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+          <CheckCircle2 size={12} className="text-emerald-400" />
           Plan CP-2026-0920-001 Authorized
         </span>
       </div>

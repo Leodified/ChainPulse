@@ -25,6 +25,7 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
 import { AnimatedNumber } from '../components/ui/AnimatedNumber';
 import { HelpCircle, ShieldCheck, Dna } from 'lucide-react';
+import { StatusBeacon, LiveTelemetryBadge, DataCascade, SignalStream } from '../components/motion';
 import { traceImpact } from '../services/impact';
 import { fetchDisruptionById } from '../services/disruptions';
 import {
@@ -206,20 +207,24 @@ export default function ImpactAnalysisPage() {
           </div>
           <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3">
             Multi-Tier Impact Investigation
-            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20">
+            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 flex items-center gap-1.5">
+              <StatusBeacon variant="critical" size="sm" />
               DISR-SG-2026-001
             </span>
           </h1>
         </div>
 
-        <button
-          onClick={handleTrace}
-          disabled={tracing}
-          className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_16px_rgba(56,189,248,0.3)] flex-shrink-0"
-        >
-          {tracing ? <LoadingSpinner size="sm" /> : <Activity size={14} />}
-          <span>{tracing ? 'Tracing Network...' : 'Re-Execute Trace'}</span>
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <LiveTelemetryBadge label="CONSEQUENCE ENGINE" statusText="ACTIVE SOLVER" variant="ai" />
+          <button
+            onClick={handleTrace}
+            disabled={tracing}
+            className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_16px_rgba(56,189,248,0.3)] flex-shrink-0 cursor-pointer"
+          >
+            {tracing ? <LoadingSpinner size="sm" /> : <Activity size={14} />}
+            <span>{tracing ? 'Tracing Network...' : 'Re-Execute Trace'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Disruption Context Banner */}
@@ -292,6 +297,10 @@ export default function ImpactAnalysisPage() {
                 )}
               </React.Fragment>
             ))}
+          </div>
+
+          <div className="pt-3 border-t border-white/[0.06]">
+            <DataCascade />
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar';
 import { Clock, Menu, FileText, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { ExecutiveBriefModal } from '../components/ui/ExecutiveBriefModal';
+import { StatusBeacon } from '../components/motion';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -57,7 +58,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </span>
             <span className="hidden sm:inline h-3 w-px bg-white/10" />
             <div className="flex items-center gap-1.5 text-xs text-rose-300 bg-rose-500/10 border border-rose-500/20 px-2.5 py-0.5 rounded-full truncate max-w-[200px] sm:max-w-none shadow-[0_0_10px_rgba(244,63,94,0.15)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping shrink-0" />
+              <StatusBeacon variant="critical" size="sm" />
               <span className="font-mono text-[11px] font-medium truncate">DISR-SG-2026-001: Singapore Port</span>
             </div>
           </div>
@@ -66,7 +67,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             {/* 1-Click Executive Briefing Trigger */}
             <button
               onClick={() => setBriefOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-[11px] font-semibold transition-all shadow-[0_0_10px_rgba(6,182,212,0.15)]"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-[11px] font-semibold transition-all shadow-[0_0_10px_rgba(6,182,212,0.15)] cursor-pointer"
             >
               <FileText size={12} />
               <span className="hidden md:inline">EXECUTIVE BRIEF</span>
@@ -81,7 +82,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
             <span className="hidden md:inline h-3 w-px bg-white/10" />
             <div className="hidden sm:flex items-center gap-1.5 text-emerald-400 text-[11px]">
-              <ShieldCheck size={13} />
+              <StatusBeacon variant="success" size="sm" />
               <span className="font-medium">DEFENSE READY</span>
             </div>
           </div>
@@ -94,7 +95,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Main Content with Route Transition */}
         <main
           key={location.pathname}
-          className="flex-1 flex flex-col overflow-y-auto relative z-10 animate-page-enter"
+          className="flex-1 flex flex-col overflow-y-auto relative z-10 animate-page-enter w-full min-w-0"
         >
           {children}
         </main>

@@ -14,6 +14,7 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts';
+import { StatusBeacon, LiveTelemetryBadge, MetricCounter, SignalStream } from '../components/motion';
 
 export default function SustainabilityPage() {
   const [s, setS] = useState<SustainabilityData>(MOCK_SUSTAINABILITY);
@@ -35,9 +36,9 @@ export default function SustainabilityPage() {
   ];
 
   return (
-    <div className="p-6 space-y-6 max-w-[1700px] mx-auto animate-fade-in">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1700px] w-full mx-auto animate-fade-in min-w-0">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono tracking-widest text-emerald-400 uppercase font-semibold">
@@ -48,41 +49,83 @@ export default function SustainabilityPage() {
               TRANSPORT EMISSIONS VARIANCE
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3 mt-1">
             Sustainability & Carbon Trade-Offs
-            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 flex items-center gap-1.5">
+              <StatusBeacon variant="success" size="sm" />
               Scope-3 Active Tracking
             </span>
           </h1>
         </div>
 
-        <div className="text-xs font-mono text-slate-400">
-          Standard: <span className="text-slate-200">GHG Protocol Corporate Value Chain</span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <LiveTelemetryBadge label="ESG GOVERNANCE" statusText="GHG PROTOCOL" variant="success" />
+          <div className="text-xs font-mono text-slate-400">
+            Standard: <span className="text-slate-200">GHG Protocol Scope-3 Cat 4/9</span>
+          </div>
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards with MetricCounter */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 rounded-2xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between cp-card-interactive">
           <span className="text-[10px] font-mono text-slate-400 uppercase">Baseline Maritime Route</span>
-          <div className="text-2xl font-bold font-mono text-sky-400 mt-1">{s.currentRouteCO2Tons} Tons CO2</div>
+          <div className="text-2xl font-bold font-mono text-sky-400 mt-1">
+            <MetricCounter value={s.currentRouteCO2Tons} suffix=" Tons CO2" />
+          </div>
           <span className="text-xs text-slate-500 mt-1">Standard sea freight cycle</span>
         </div>
 
-        <div className="p-5 rounded-2xl bg-[#080d19] border border-rose-500/20 flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-[#080d19] border border-rose-500/20 flex flex-col justify-between cp-card-interactive">
           <span className="text-[10px] font-mono text-rose-300 uppercase">Peak Transport Variance</span>
           <div className="text-2xl font-bold font-mono text-rose-400 mt-1">
-            {s.strategies[1].co2Tons} Tons (+{s.strategies[1].co2ChangePct}%)
+            <MetricCounter value={s.strategies[1].co2Tons} suffix=" Tons" />
+            <span className="text-xs ml-1.5 text-rose-300">(+{s.strategies[1].co2ChangePct}%)</span>
           </div>
           <span className="text-xs text-slate-500 mt-1">Strategy B: Emergency Air Freight</span>
         </div>
 
-        <div className="p-5 rounded-2xl bg-[#080d19] border border-emerald-500/20 flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-[#080d19] border border-emerald-500/20 flex flex-col justify-between cp-card-interactive">
           <span className="text-[10px] font-mono text-emerald-300 uppercase">Minimal Carbon Variance</span>
           <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">
-            {s.strategies[2].co2Tons} Tons (+{s.strategies[2].co2ChangePct}%)
+            <MetricCounter value={s.strategies[2].co2Tons} suffix=" Tons" />
+            <span className="text-xs ml-1.5 text-emerald-300">(+{s.strategies[2].co2ChangePct}%)</span>
           </div>
           <span className="text-xs text-slate-500 mt-1">Strategy C: Customer Reallocation</span>
+        </div>
+      </div>
+
+      {/* Transport Mode Variance: Sea Freight vs Emergency Air Bridge */}
+      <div className="p-4 rounded-2xl bg-[#070b16] border border-white/[0.08] select-none">
+        <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.05] text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+          <span className="flex items-center gap-1.5">
+            <StatusBeacon variant="warning" size="sm" />
+            <span>MODAL CARBON TRADE-OFF VECTOR (SEA ──► AIR FREIGHT BRIDGE)</span>
+          </span>
+          <span className="text-amber-400 font-bold">+340% SCOPE-3 VARIANCE</span>
+        </div>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-3 rounded-xl bg-[#090f1e] border border-white/[0.06]">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-400">
+              <Ship size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] font-mono uppercase text-slate-400">Baseline Mode: Maritime Transit</span>
+              <div className="text-sm font-bold font-mono text-sky-300">120 Tons CO2 · 28 Transit Days</div>
+            </div>
+          </div>
+
+          <SignalStream status="warning" speed="fast" label="MODAL SHIFT" />
+
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400">
+              <Plane size={20} />
+            </div>
+            <div>
+              <span className="text-[10px] font-mono uppercase text-slate-400">Expedited Mode: Air Bridge (Strategy B)</span>
+              <div className="text-sm font-bold font-mono text-rose-300">528 Tons CO2 (+340%) · 8 Days</div>
+            </div>
+          </div>
         </div>
       </div>
 

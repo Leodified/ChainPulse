@@ -22,6 +22,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
+import { StatusBeacon, LiveTelemetryBadge, MetricCounter } from '../components/motion';
 
 export default function FinancialImpactPage() {
   const [f, setF] = useState<FinancialSummary>(MOCK_FINANCIAL_SUMMARY);
@@ -62,9 +63,9 @@ export default function FinancialImpactPage() {
   const displayDaily = f.dailyExposure.filter((_, i) => i % 5 === 0).slice(0, 12);
 
   return (
-    <div className="p-6 space-y-6 max-w-[1700px] mx-auto animate-fade-in">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1700px] w-full mx-auto animate-fade-in min-w-0">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono tracking-widest text-amber-400 uppercase font-semibold">
@@ -73,33 +74,97 @@ export default function FinancialImpactPage() {
             <span className="text-slate-600">/</span>
             <span className="text-[10px] font-mono text-slate-400 uppercase">P&L RISK MATRIX</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3 mt-1">
             Financial Impact Quantification
-            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20">
+            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 flex items-center gap-1.5">
+              <StatusBeacon variant="critical" size="sm" />
               $28.3M Maximum Exposure
             </span>
           </h1>
         </div>
 
-        <div className="text-xs font-mono text-slate-400">
-          Audit Model: <span className="text-slate-200">SAP S/4HANA Ledger Telemetry</span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <LiveTelemetryBadge label="TREASURY TERMINAL" statusText="S/4HANA LEDGER SYNC" variant="info" />
+          <div className="text-xs font-mono text-slate-400">
+            Audit Model: <span className="text-slate-200">SAP S/4HANA FI/CO Ledger</span>
+          </div>
         </div>
       </div>
 
-      {/* KPI Metric Strip */}
+      {/* KPI Metric Strip with MetricCounter */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((k) => (
-          <div
-            key={k.label}
-            className="p-5 rounded-2xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between"
-          >
-            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-              {k.label}
-            </span>
-            <div className={`text-2xl font-bold font-mono mt-1 ${k.color}`}>{k.value}</div>
-            <span className="text-[11px] text-slate-500 mt-1">{k.sub}</span>
+        <div className="p-5 rounded-2xl bg-[#080d19] border border-rose-500/20 flex flex-col justify-between cp-card-interactive">
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+            Revenue Exposure
+          </span>
+          <div className="text-2xl font-bold font-mono text-rose-400 mt-1">
+            <MetricCounter value={f.revenueExposureUSD / 1e6} prefix="$" suffix="M" decimals={1} />
           </div>
-        ))}
+          <span className="text-[11px] text-slate-500 mt-1">60-day maximum horizon</span>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-[#080d19] border border-amber-500/20 flex flex-col justify-between cp-card-interactive">
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+            Working Capital Impact
+          </span>
+          <div className="text-2xl font-bold font-mono text-amber-400 mt-1">
+            <MetricCounter value={f.workingCapitalImpactUSD / 1e6} prefix="$" suffix="M" decimals={1} />
+          </div>
+          <span className="text-[11px] text-slate-500 mt-1">Buffer inventory burn</span>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-[#080d19] border border-emerald-500/20 flex flex-col justify-between cp-card-interactive">
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+            Min Recovery Cost
+          </span>
+          <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">
+            <MetricCounter value={f.recoveryCostRangeMin / 1e6} prefix="$" suffix="M" decimals={1} />
+          </div>
+          <span className="text-[11px] text-slate-500 mt-1">Reallocation handling</span>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-[#080d19] border border-amber-500/20 flex flex-col justify-between cp-card-interactive">
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+            Max Expedited Cost
+          </span>
+          <div className="text-2xl font-bold font-mono text-amber-400 mt-1">
+            <MetricCounter value={f.recoveryCostRangeMax / 1e6} prefix="$" suffix="M" decimals={1} />
+          </div>
+          <span className="text-[11px] text-slate-500 mt-1">Emergency Air Freight</span>
+        </div>
+      </div>
+
+      {/* Financial Exposure Value-Chain Waterfall */}
+      <div className="p-4 rounded-2xl bg-[#070b16] border border-white/[0.08] select-none">
+        <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.05] text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+          <span className="flex items-center gap-1.5">
+            <StatusBeacon variant="critical" size="sm" />
+            <span>VALUE-CHAIN EXPOSURE CASCADE // AUDIT TRACE</span>
+          </span>
+          <span className="text-rose-400 font-bold">$28.3M Modeled Cap</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
+          <div className="p-3 rounded-xl bg-[#0c1424] border border-rose-500/20">
+            <span className="text-[10px] text-slate-500 block uppercase">Port Transshipment</span>
+            <span className="text-base font-bold text-rose-400">$4.2M Locked</span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Penang & Taiwan in-transit</span>
+          </div>
+          <div className="p-3 rounded-xl bg-[#0c1424] border border-amber-500/20">
+            <span className="text-[10px] text-slate-500 block uppercase">Raw BOM Shortage</span>
+            <span className="text-base font-bold text-amber-400">$3.6M Buffer Burn</span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">PCB assembly inventory</span>
+          </div>
+          <div className="p-3 rounded-xl bg-[#0c1424] border border-amber-500/20">
+            <span className="text-[10px] text-slate-500 block uppercase">Plant Idle Overhead</span>
+            <span className="text-base font-bold text-amber-400">$5.0M Throttling</span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Frankfurt Hub shift delay</span>
+          </div>
+          <div className="p-3 rounded-xl bg-[#0c1424] border border-rose-500/30">
+            <span className="text-[10px] text-slate-500 block uppercase">Tier-1 Contract Exposure</span>
+            <span className="text-base font-bold text-rose-400">$15.5M SLA Risk</span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Deutsche Telekom, Siemens, Bosch</span>
+          </div>
+        </div>
       </div>
 
       {/* Charts Dual Grid */}

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { StatusIndicator } from '../components/ui/StatusIndicator';
 import { auditService, type AuditEvent } from '../services/audit';
+import { StatusBeacon, LiveTelemetryBadge } from '../components/motion';
 
 export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
@@ -42,9 +43,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1600px] w-full mx-auto animate-fade-in min-w-0">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono tracking-widest text-sky-400 uppercase font-semibold">
@@ -53,18 +54,26 @@ export default function SettingsPage() {
             <span className="text-slate-600">/</span>
             <span className="text-[10px] font-mono text-slate-400 uppercase">SYS CONFIG & AUDIT TRAIL</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3 mt-1">
             System Settings & Decision Governance
+            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 flex items-center gap-1.5">
+              <StatusBeacon variant="success" size="sm" />
+              All Systems Operational
+            </span>
           </h1>
         </div>
 
-        <button
-          onClick={handleSave}
-          className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_16px_rgba(56,189,248,0.3)] cursor-pointer"
-        >
-          {saved ? <Check size={14} /> : <Save size={14} />}
-          <span>{saved ? 'Configuration Saved' : 'Save Changes'}</span>
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <LiveTelemetryBadge label="SYSTEM HEALTH" statusText="ALL SERVICES GREEN" variant="success" />
+          <LiveTelemetryBadge label="ERP FIREWALL" statusText="READ-ONLY ENFORCED" variant="info" />
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_16px_rgba(56,189,248,0.3)] cursor-pointer"
+          >
+            {saved ? <Check size={14} /> : <Save size={14} />}
+            <span>{saved ? 'Configuration Saved' : 'Save Changes'}</span>
+          </button>
+        </div>
       </div>
 
       {/* AI SAFETY BOUNDARY ARCHITECTURE (ENTERPRISE FIREWALL) */}

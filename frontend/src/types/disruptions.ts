@@ -31,6 +31,9 @@ export interface DisruptionEvent {
   affectedSuppliers?: string[];
   sources?: string[];
   tags?: string[];
+  affectedRadiusKm?: number;
+  confidenceScore?: number;
+  estimatedDurationDays?: number;
 }
 
 export interface ImpactTraceNode {

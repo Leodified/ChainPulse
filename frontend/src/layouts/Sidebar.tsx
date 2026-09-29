@@ -17,6 +17,7 @@ import {
   Radio,
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { StatusBeacon } from '../components/motion';
 
 interface NavItem {
   path: string;
@@ -175,10 +176,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       <div className="px-4 py-3 border-t border-white/[0.06] bg-[#050811] space-y-2">
         <div className="flex items-center justify-between text-[11px]">
           <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
+            <StatusBeacon variant="success" size="sm" />
             <span className="text-slate-300 font-mono text-[10px]">LIVE TELEMETRY</span>
           </div>
           <span className="text-[10px] text-slate-500 font-mono">14ms</span>

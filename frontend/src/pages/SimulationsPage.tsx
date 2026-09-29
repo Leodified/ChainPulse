@@ -33,6 +33,7 @@ import { fetchScenarios } from '../services/simulations';
 import { MOCK_SCENARIOS } from '../data/mockData';
 import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
 import { AnimatedNumber } from '../components/ui/AnimatedNumber';
+import { StatusBeacon, LiveTelemetryBadge, ComputationSequence } from '../components/motion';
 import type { ScenarioDuration, Scenario } from '../types/simulations';
 
 const RISK_BADGE: Record<string, string> = {
@@ -64,7 +65,7 @@ export default function SimulationsPage() {
     setActiveDuration(dur);
     setTimeout(() => {
       setIsSimulating(false);
-    }, 380);
+    }, 1000);
   }
 
   const TABS: { duration: ScenarioDuration; label: string; desc: string }[] = [
@@ -90,9 +91,9 @@ export default function SimulationsPage() {
   });
 
   return (
-    <div className="p-6 space-y-6 max-w-[1700px] mx-auto animate-fade-in">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1700px] w-full mx-auto animate-fade-in min-w-0">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono tracking-widest text-sky-400 uppercase font-semibold">
@@ -103,20 +104,23 @@ export default function SimulationsPage() {
               MONTE CARLO TRAJECTORY ENGINE
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3 mt-1">
             Impact Trajectory Simulations
-            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20">
+            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/20 flex items-center gap-1.5">
+              <StatusBeacon variant="info" size="sm" />
               Singapore Port Baseline
             </span>
           </h1>
         </div>
 
-        {/* Transient Computing Status */}
-        <div className="flex items-center gap-2 text-xs font-mono">
-          <span className={`w-2 h-2 rounded-full ${isSimulating ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
-          <span className="text-slate-300">
-            {isSimulating ? 'RE-COMPUTING STOCHASTIC TRAJECTORY...' : 'MODEL CONVERGED (10,000 RUNS)'}
-          </span>
+        {/* Transient Computing Status & Telemetry */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <LiveTelemetryBadge label="STOCHASTIC ENGINE" statusText="10,000 ITERATIONS" variant="ai" />
+          <LiveTelemetryBadge
+            label="STATUS"
+            statusText={isSimulating ? 'COMPUTING...' : 'CONVERGED'}
+            variant={isSimulating ? 'warning' : 'success'}
+          />
         </div>
       </div>
 
@@ -137,6 +141,15 @@ export default function SimulationsPage() {
             <span>MODEL: SINGAPORE PORT BUFFER BREAKDOWN</span>
           </div>
         </div>
+
+        {/* Active Computation Progression Banner */}
+        {isSimulating && (
+          <ComputationSequence
+            isRunning={isSimulating}
+            title="Monte Carlo Trajectory Engine"
+            durationMs={950}
+          />
+        )}
 
         {/* Timeline Horizon Nodes: TODAY ────► 7D ────► 30D ────► 60D */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
