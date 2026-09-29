@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Download, FileText, Printer, Share2, ShieldCheck, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { StatusBeacon, LiveTelemetryBadge, ComputationSequence, MetricCounter } from '../components/motion';
+import { ReportCompilationPipeline } from '../components/reports/ReportCompilationPipeline';
 
 export default function ReportsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -148,6 +149,9 @@ export default function ReportsPage() {
           Plan CP-2026-0920-001 Authorized
         </span>
       </div>
+
+      {/* 7-Stage Intelligence Compilation Pipeline */}
+      <ReportCompilationPipeline />
 
       {/* Report Sections Document Canvas */}
       <div className="rounded-2xl bg-[#080d19] border border-white/[0.08] p-8 shadow-[0_12px_40px_rgba(0,0,0,0.6)] space-y-8">

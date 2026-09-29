@@ -23,6 +23,7 @@ import { MOCK_STRATEGIES } from '../data/mockData';
 import type { RecoveryStrategy } from '../types/agents';
 import { approveStrategy, fetchStrategies } from '../services/recovery';
 import { StatusBeacon, LiveTelemetryBadge, SignalStream } from '../components/motion';
+import { RecoveryStrategyGraph } from '../components/recovery/RecoveryStrategyGraph';
 
 function MetricPill({
   label,
@@ -317,37 +318,12 @@ export default function RecoveryPlansPage() {
         </div>
       </div>
 
-      {/* Animated Branching Strategy Construction Pipeline */}
-      <div className="rounded-2xl bg-[#070b16] border border-white/[0.08] p-4 select-none">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.05] text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-          <span className="flex items-center gap-1.5">
-            <StatusBeacon variant="ai" size="sm" />
-            <span>AI STRATEGY FORMULATION & OPTIMIZATION PIPELINE</span>
-          </span>
-          <span className="text-emerald-400 font-bold">READY FOR OPERATIONAL AUTHORIZATION</span>
-        </div>
-        <div className="flex items-center justify-between gap-2 overflow-x-auto text-xs font-mono py-1">
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#0c1424] border border-rose-500/30 text-rose-300 shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
-            <span>DISRUPTION DETECTED</span>
-          </div>
-          <SignalStream status="critical" speed="fast" className="shrink-0" />
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#0c1424] border border-amber-500/30 text-amber-300 shrink-0">
-            <Scale size={12} className="text-amber-400" />
-            <span>3 CANDIDATES GENERATED</span>
-          </div>
-          <SignalStream status="warning" speed="normal" className="shrink-0" />
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#0c1424] border border-cyan-500/30 text-cyan-300 shrink-0">
-            <ShieldCheck size={12} className="text-cyan-400" />
-            <span>CONSTRAINTS OPTIMIZED</span>
-          </div>
-          <SignalStream status="ai" speed="fast" className="shrink-0" />
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-bold shadow-[0_0_15px_rgba(16,185,129,0.2)] shrink-0">
-            <CheckCircle size={12} className="text-emerald-400 animate-pulse" />
-            <span>HUMAN GATE COMMITMENT</span>
-          </div>
-        </div>
-      </div>
+      {/* Recovery Strategy Graph: Multi-Dimensional Trade-Off Decision Network */}
+      <RecoveryStrategyGraph
+        strategies={strategies}
+        selectedId={selectedId}
+        onSelectStrategy={(id) => setSelectedId(id)}
+      />
 
       {/* AI Swarm Synthesis Insight Callout */}
       <div className="rounded-2xl bg-gradient-to-r from-indigo-950/25 via-[#070d1a] to-sky-950/25 border border-indigo-500/30 p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">

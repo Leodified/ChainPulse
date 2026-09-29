@@ -28,6 +28,7 @@ import {
   DataCascade,
   SignalStream,
 } from '../components/motion';
+import { IncidentPropagationConsole } from '../components/disruptions/IncidentPropagationConsole';
 
 type SeverityFilter = 'ALL' | 'HIGH' | 'MEDIUM' | 'LOW';
 type CategoryFilter =
@@ -194,16 +195,9 @@ export default function DisruptionsPage() {
             </div>
           </div>
 
-          {/* Causal Propagation Stream Vector (Singapore -> Logistics -> Suppliers -> BOM -> Plants -> Orders -> Exposure) */}
-          <div className="relative z-10 pt-3 border-t border-white/[0.08]">
-            <div className="flex items-center justify-between pb-2 text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-              <span className="flex items-center gap-2">
-                <Activity size={12} className="text-rose-400 animate-pulse" />
-                <span>Deterministic Multi-Tier Propagation Cascade</span>
-              </span>
-              <SignalStream status="critical" speed="fast" label="PROPAGATION ACTIVE" />
-            </div>
-            <DataCascade onStepClick={() => navigate(`/impact/${featured.id}`)} />
+          {/* Live Incident Command Console: Active Causal Propagation Pipeline */}
+          <div className="relative z-10 pt-2 border-t border-white/[0.08]">
+            <IncidentPropagationConsole onTraceImpact={() => navigate(`/impact/${featured.id}`)} />
           </div>
         </div>
       )}

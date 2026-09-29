@@ -34,6 +34,7 @@ import { MOCK_SCENARIOS } from '../data/mockData';
 import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
 import { AnimatedNumber } from '../components/ui/AnimatedNumber';
 import { StatusBeacon, LiveTelemetryBadge, ComputationSequence } from '../components/motion';
+import { SimulationExecutionPipeline } from '../components/simulations/SimulationExecutionPipeline';
 import type { ScenarioDuration, Scenario } from '../types/simulations';
 
 const RISK_BADGE: Record<string, string> = {
@@ -123,6 +124,14 @@ export default function SimulationsPage() {
           />
         </div>
       </div>
+
+      {/* 🧪 Simulation Engine: Live Execution Pipeline */}
+      <SimulationExecutionPipeline
+        onRunSimulation={() => {
+          setIsSimulating(true);
+          setTimeout(() => setIsSimulating(false), 900);
+        }}
+      />
 
       {/* 🧪 FUTURE STATE SIMULATOR: Interactive Timeline Rail */}
       <div className="rounded-2xl bg-[#080d19] border border-cyan-500/30 p-5 space-y-4 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">

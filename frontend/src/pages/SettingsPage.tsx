@@ -17,6 +17,7 @@ import {
 import { StatusIndicator } from '../components/ui/StatusIndicator';
 import { auditService, type AuditEvent } from '../services/audit';
 import { StatusBeacon, LiveTelemetryBadge } from '../components/motion';
+import { GovernancePipeline } from '../components/governance/GovernancePipeline';
 
 export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
@@ -76,102 +77,8 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* AI SAFETY BOUNDARY ARCHITECTURE (ENTERPRISE FIREWALL) */}
-      <div className="p-6 rounded-2xl bg-gradient-to-b from-[#0a1226] to-[#070b16] border border-sky-400/30 shadow-[0_12px_40px_rgba(0,0,0,0.5)] space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
-          <div className="flex items-center gap-2.5">
-            <ShieldCheck size={20} className="text-sky-400" />
-            <div>
-              <h2 className="text-sm font-bold font-mono text-slate-100 uppercase tracking-wider">
-                Autonomous AI Safety Boundary Pipeline
-              </h2>
-              <p className="text-xs text-slate-400">
-                Non-bypassable validation gates preventing autonomous hallucinations or direct ERP tampering.
-              </p>
-            </div>
-          </div>
-          <span className="text-[10px] font-mono px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
-            ZERO DIRECT ERP WRITE PRIVILEGE
-          </span>
-        </div>
-
-        {/* 6-Step Pipeline Visual */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
-          {[
-            {
-              step: '01',
-              title: 'AI Swarm Output',
-              desc: 'Multi-agent hypothesis generation & trade-off envelopes.',
-              icon: <Terminal size={16} className="text-sky-400" />,
-              border: 'border-sky-500/30',
-              tag: 'UNTRUSTED',
-              tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-            },
-            {
-              step: '02',
-              title: 'Schema Validation',
-              desc: 'Pydantic strict typing & bounds enforcement.',
-              icon: <Lock size={16} className="text-indigo-400" />,
-              border: 'border-indigo-500/30',
-              tag: 'DETERMINISTIC',
-              tagColor: 'text-indigo-300 bg-indigo-500/10 border-indigo-500/20',
-            },
-            {
-              step: '03',
-              title: 'Business Rules',
-              desc: 'BOM logic, safety stocks, financial loss ceiling checks.',
-              icon: <Sliders size={16} className="text-blue-400" />,
-              border: 'border-blue-500/30',
-              tag: 'ERP INTEGRITY',
-              tagColor: 'text-blue-300 bg-blue-500/10 border-blue-500/20',
-            },
-            {
-              step: '04',
-              title: 'Role Authorization',
-              desc: 'Tenant isolation & RBAC (OPERATIONS_DIRECTOR required).',
-              icon: <Shield size={16} className="text-purple-400" />,
-              border: 'border-purple-500/30',
-              tag: 'RBAC GUARD',
-              tagColor: 'text-purple-300 bg-purple-500/10 border-purple-500/20',
-            },
-            {
-              step: '05',
-              title: 'Human Sign-off',
-              desc: '2-step cryptographic approval by verified operations authority.',
-              icon: <UserCheck size={16} className="text-emerald-400" />,
-              border: 'border-emerald-500/30',
-              tag: 'MANDATORY',
-              tagColor: 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20',
-            },
-            {
-              step: '06',
-              title: 'Ledger Execution',
-              desc: 'Immutable audit log commit & ERP purchase requisition release.',
-              icon: <Database size={16} className="text-cyan-400" />,
-              border: 'border-cyan-500/30',
-              tag: 'AUDITED',
-              tagColor: 'text-cyan-300 bg-cyan-500/10 border-cyan-500/20',
-            },
-          ].map((g) => (
-            <div
-              key={g.step}
-              className={`p-3.5 rounded-xl bg-[#090f1d] border ${g.border} flex flex-col justify-between space-y-2`}
-            >
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="p-1.5 rounded-lg bg-white/[0.04]">{g.icon}</div>
-                  <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded border font-bold ${g.tagColor}`}>
-                    {g.tag}
-                  </span>
-                </div>
-                <div className="text-[10px] font-mono text-slate-500">GATE {g.step}</div>
-                <h4 className="text-xs font-bold text-slate-200 mt-0.5">{g.title}</h4>
-                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed font-sans">{g.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* AI SAFETY BOUNDARY ARCHITECTURE (ENTERPRISE FIREWALL PIPELINE) */}
+      <GovernancePipeline />
 
       {/* REAL-TIME IMMUTABLE DECISION AUDIT LOG */}
       <div className="rounded-2xl bg-[#080d19] border border-white/[0.08] p-6 space-y-4">

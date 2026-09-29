@@ -4,6 +4,7 @@ import { AlertCircle, AlertTriangle, ArrowRight, ShieldAlert, Zap, ChevronDown, 
 import { clsx } from 'clsx';
 import { MOCK_ANOMALIES } from '../data/mockData';
 import { StatusBeacon, LiveTelemetryBadge, MetricCounter, SignalStream } from '../components/motion';
+import { AnomalySignalConstellation } from '../components/anomalies/AnomalySignalConstellation';
 
 export default function TransactionAnomaliesPage() {
   const [selectedAnomalyId, setSelectedAnomalyId] = useState<string | null>(null);
@@ -83,6 +84,13 @@ export default function TransactionAnomaliesPage() {
           </div>
         ))}
       </div>
+      
+      {/* Dynamic Causal Anomaly Constellation */}
+      <AnomalySignalConstellation
+        anomalies={MOCK_ANOMALIES}
+        selectedId={selectedAnomalyId}
+        onSelectAnomaly={(id) => setSelectedAnomalyId(id === selectedAnomalyId ? null : id)}
+      />
 
       {/* Anomaly Log Table */}
       <div className="rounded-2xl bg-[#080d19] border border-white/[0.08] p-5 space-y-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">

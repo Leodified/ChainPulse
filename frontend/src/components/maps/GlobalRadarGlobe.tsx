@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import worldLandData from '../../data/world-land-110m.json';
 import {
   Compass,
   Crosshair,
@@ -168,6 +169,7 @@ export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
   // References for camera tweening
   const cameraTargetRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
   const cameraPosTargetRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 1.2, 3.8));
+  const targetRotationRef = useRef<{ x: number; y: number } | null>(null);
   const globeGroupRef = useRef<THREE.Group | null>(null);
 
   useEffect(() => {
@@ -228,10 +230,72 @@ export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
     const gridMat = new THREE.LineBasicMaterial({
       color: 0x38bdf8,
       transparent: true,
-      opacity: 0.08,
+      opacity: 0.06,
     });
     const gridMesh = new THREE.LineSegments(gridGeo, gridMat);
     globeGroup.add(gridMesh);
+
+    // 3b. Real Earth Geography: Continent & Coastline Geometry from Natural Earth
+    const coastlinePoints: THREE.Vector3[] = [];
+    const landDotPositions: number[] = [];
+    const coastRadius = sphereRadius * 1.0035;
+
+    interface GeoJsonFeature {
+      geometry: {
+        type: string;
+        coordinates: any;
+      };
+    }
+
+    (worldLandData.features as unknown as GeoJsonFeature[]).forEach((feature) => {
+      const geom = feature.geometry;
+      const processRing = (ring: number[][]) => {
+        for (let i = 0; i < ring.length - 1; i++) {
+          const lng1 = ring[i][0];
+          const lat1 = ring[i][1];
+          const lng2 = ring[i + 1][0];
+          const lat2 = ring[i + 1][1];
+          const p1 = latLngToVector3(lat1, lng1, coastRadius);
+          const p2 = latLngToVector3(lat2, lng2, coastRadius);
+          coastlinePoints.push(p1, p2);
+
+          // Add land surface marker dots along coasts
+          landDotPositions.push(p1.x, p1.y, p1.z);
+        }
+      };
+
+      if (geom.type === 'Polygon') {
+        geom.coordinates.forEach((ring: number[][]) => processRing(ring));
+      } else if (geom.type === 'MultiPolygon') {
+        geom.coordinates.forEach((poly: number[][][]) => {
+          poly.forEach((ring: number[][]) => processRing(ring));
+        });
+      }
+    });
+
+    const coastlineGeo = new THREE.BufferGeometry().setFromPoints(coastlinePoints);
+    const coastlineMat = new THREE.LineBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.7,
+    });
+    const coastlineMesh = new THREE.LineSegments(coastlineGeo, coastlineMat);
+    globeGroup.add(coastlineMesh);
+
+    // Subtle tactical dot density on landmass boundaries
+    const landDotGeo = new THREE.BufferGeometry();
+    landDotGeo.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(landDotPositions, 3)
+    );
+    const landDotMat = new THREE.PointsMaterial({
+      color: 0x0ea5e9,
+      size: 0.02,
+      transparent: true,
+      opacity: 0.45,
+    });
+    const landDotMesh = new THREE.Points(landDotGeo, landDotMat);
+    globeGroup.add(landDotMesh);
 
     // Atmospheric Outer Glow Halo
     const atmosGeo = new THREE.SphereGeometry(sphereRadius * 1.08, 48, 48);
@@ -414,8 +478,17 @@ export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
       const dt = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
 
-      // Slow Idle Rotation
-      if (isRotating && !isDragging && !isFocused) {
+      // Rotation handling: smooth target interpolation or slow idle rotation
+      if (targetRotationRef.current && globeGroup) {
+        globeGroup.rotation.y += (targetRotationRef.current.y - globeGroup.rotation.y) * 0.08;
+        globeGroup.rotation.x += (targetRotationRef.current.x - globeGroup.rotation.x) * 0.08;
+        if (
+          Math.abs(targetRotationRef.current.y - globeGroup.rotation.y) < 0.001 &&
+          Math.abs(targetRotationRef.current.x - globeGroup.rotation.x) < 0.001
+        ) {
+          targetRotationRef.current = null;
+        }
+      } else if (isRotating && !isDragging && !isFocused) {
         globeGroup.rotation.y += 0.0018;
       }
 
@@ -449,6 +522,26 @@ export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
 
     animId = requestAnimationFrame(animate);
 
+    // 8b. Raycasting for direct pin clicking on 3D globe
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    const onClickCanvas = (e: MouseEvent) => {
+      if (isDragging) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hit = raycaster.intersectObjects(nodeMeshes.map((m) => m.mesh));
+      if (hit.length > 0) {
+        const found = nodeMeshes.find((m) => m.mesh === hit[0].object);
+        if (found) {
+          focusOnNode(found.node);
+        }
+      }
+    };
+    container.addEventListener('click', onClickCanvas);
+
     // 9. Resize Handler
     const handleResize = () => {
       if (!container) return;
@@ -462,6 +555,7 @@ export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
 
     return () => {
       cancelAnimationFrame(animId);
+      container.removeEventListener('click', onClickCanvas);
       container.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
@@ -481,14 +575,13 @@ export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
 
     if (onNodeSelect) onNodeSelect(node);
 
-    if (globeGroupRef.current) {
-      // Calculate target rotation to bring node into front view
-      const pos = latLngToVector3(node.lat, node.lng, 1);
-      globeGroupRef.current.rotation.y = -Math.atan2(pos.x, pos.z);
-      globeGroupRef.current.rotation.x = -Math.asin(pos.y / 1);
-    }
+    // Calculate target rotation to smoothly orient node towards the front viewer
+    const pos = latLngToVector3(node.lat, node.lng, 1);
+    const targetY = -Math.atan2(pos.x, pos.z);
+    const targetX = -Math.asin(pos.y / 1);
+    targetRotationRef.current = { x: targetX, y: targetY };
 
-    // Zoom camera in closer
+    // Smoothly fly camera in closer
     cameraPosTargetRef.current.set(0, 0, 2.5);
   };
 

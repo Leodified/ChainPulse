@@ -53,7 +53,7 @@ const NODES: TwinNode[] = [
     metric: '35% Cap · 847 Vessels',
     status: 'critical',
     isAffected: true,
-    x: 6,
+    x: 8,
     y: 48,
     details: {
       capacity: '35% (65% drop)',
@@ -72,7 +72,7 @@ const NODES: TwinNode[] = [
     metric: '+12d Delay',
     status: 'critical',
     isAffected: true,
-    x: 20,
+    x: 21,
     y: 48,
     details: {
       leadTime: '+12.0 Days transit delay',
@@ -143,7 +143,7 @@ const NODES: TwinNode[] = [
     metric: 'Runway: 5.2 Days',
     status: 'warning',
     isAffected: true,
-    x: 50,
+    x: 49,
     y: 30,
     details: {
       runway: '5.2 Days remaining',
@@ -160,7 +160,7 @@ const NODES: TwinNode[] = [
     metric: 'Runway: 7 Days',
     status: 'warning',
     isAffected: true,
-    x: 50,
+    x: 49,
     y: 58,
     details: {
       runway: '7.0 Days safety stock',
@@ -177,7 +177,7 @@ const NODES: TwinNode[] = [
     metric: 'Runway: 24 Days',
     status: 'normal',
     isAffected: false,
-    x: 50,
+    x: 49,
     y: 82,
     details: {
       runway: '24.0 Days buffer',
@@ -195,8 +195,8 @@ const NODES: TwinNode[] = [
     metric: '70% Throttle Mode',
     status: 'warning',
     isAffected: true,
-    x: 65,
-    y: 44,
+    x: 63,
+    y: 46,
     details: {
       capacity: 'Throttled to 70% to conserve silicon',
       upstream: ['mat-pcb', 'mat-chips', 'mat-connectors'],
@@ -213,8 +213,8 @@ const NODES: TwinNode[] = [
     metric: '22 Orders Impacted',
     status: 'warning',
     isAffected: true,
-    x: 79,
-    y: 44,
+    x: 76,
+    y: 46,
     details: {
       ordersCount: 22,
       financialExposure: '$28.3M Modeled Max',
@@ -232,7 +232,7 @@ const NODES: TwinNode[] = [
     metric: '$14.2M Book Value',
     status: 'critical',
     isAffected: true,
-    x: 93,
+    x: 89,
     y: 24,
     details: {
       ordersCount: 10,
@@ -250,7 +250,7 @@ const NODES: TwinNode[] = [
     metric: '$7.7M Book Value',
     status: 'critical',
     isAffected: true,
-    x: 93,
+    x: 89,
     y: 50,
     details: {
       ordersCount: 7,
@@ -268,7 +268,7 @@ const NODES: TwinNode[] = [
     metric: '$6.4M Book Value',
     status: 'warning',
     isAffected: true,
-    x: 93,
+    x: 89,
     y: 76,
     details: {
       ordersCount: 5,
@@ -520,7 +520,7 @@ export function LiveSupplyNetworkTwin({
   };
 
   return (
-    <div className="relative rounded-2xl bg-gradient-to-b from-[#080e1d] via-[#050914] to-[#03060d] border border-white/[0.08] shadow-[0_16px_50px_rgba(0,0,0,0.8)] overflow-hidden p-5 sm:p-7">
+    <div className="relative rounded-2xl bg-gradient-to-b from-[#080e1d] via-[#050914] to-[#03060d] border border-white/[0.08] shadow-[0_16px_50px_rgba(0,0,0,0.8)] overflow-hidden p-4 sm:p-5">
       {/* Background Telemetry Grid & Depth Atmosphere */}
       <div className="absolute inset-0 cp-telemetry-grid opacity-35 pointer-events-none" />
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-rose-500/[0.04] rounded-full blur-3xl pointer-events-none" />
@@ -583,7 +583,7 @@ export function LiveSupplyNetworkTwin({
       {/* Main Interactive Spatial Network Viewport */}
       <div
         ref={containerRef}
-        className="relative z-10 w-full h-[400px] sm:h-[460px] my-3 select-none overflow-hidden"
+        className="relative z-10 w-full h-[350px] sm:h-[380px] lg:h-[400px] my-2 select-none overflow-hidden"
       >
         {/* Tier Vertical Division Guidelines */}
         <div className="absolute inset-0 grid grid-cols-7 pointer-events-none opacity-20">
@@ -735,7 +735,7 @@ export function LiveSupplyNetworkTwin({
                 top: `${node.y}%`,
                 transform: 'translate(-50%, -50%)',
               }}
-              className={`absolute cursor-pointer transition-all duration-300 rounded-xl p-2.5 sm:p-3 border backdrop-blur-md flex flex-col justify-between min-w-[120px] max-w-[170px] ${borderClass} ${shadowClass}`}
+              className={`absolute cursor-pointer transition-all duration-300 rounded-xl p-2 sm:p-2.5 border backdrop-blur-md flex flex-col justify-between w-[118px] sm:w-[128px] md:w-[136px] ${borderClass} ${shadowClass}`}
             >
               {/* Causal wave ripple shockwave */}
               {isTierWaveActive && (

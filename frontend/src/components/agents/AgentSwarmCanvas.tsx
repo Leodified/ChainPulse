@@ -151,7 +151,7 @@ export function AgentSwarmCanvas({
   const [orchestratorRingAngle, setOrchestratorRingAngle] = useState(0);
 
   // Radius for orbital satellite positioning (in percentage)
-  const ORBIT_RADIUS = 36;
+  const ORBIT_RADIUS = 34;
   const CENTER_X = 50;
   const CENTER_Y = 50;
 

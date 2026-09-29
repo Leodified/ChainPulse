@@ -26,6 +26,7 @@ import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
 import { AnimatedNumber } from '../components/ui/AnimatedNumber';
 import { HelpCircle, ShieldCheck, Dna } from 'lucide-react';
 import { StatusBeacon, LiveTelemetryBadge, DataCascade, SignalStream } from '../components/motion';
+import { ImpactCascadeGraph } from '../components/impact/ImpactCascadeGraph';
 import { traceImpact } from '../services/impact';
 import { fetchDisruptionById } from '../services/disruptions';
 import {
@@ -258,51 +259,9 @@ export default function ImpactAnalysisPage() {
         </div>
       </div>
 
-      {/* Critical Impact Path Visualization */}
+      {/* Impact Cascade Graph: Interactive Multi-Tier Causal Accumulation Engine */}
       {traced && (
-        <div className="rounded-2xl bg-[#080d19] border border-white/[0.08] p-5 space-y-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-          <div className="flex items-center justify-between text-xs font-mono border-b border-white/[0.06] pb-3">
-            <div className="flex items-center gap-2">
-              <Activity size={14} className="text-sky-400" />
-              <span className="font-bold text-slate-200 uppercase tracking-wider">
-                CRITICAL PROPAGATION PATH
-              </span>
-            </div>
-            <span className="text-rose-400 font-bold">{trace.affectedNodeCount} Nodes Impacted</span>
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            {trace.nodes.slice(0, visibleNodes).map((node, i) => (
-              <React.Fragment key={node.id}>
-                <div
-                  className="p-3 rounded-xl bg-[#0c1424] border border-white/[0.06] flex flex-col min-w-[140px] flex-shrink-0 animate-fade-in"
-                  style={{ animationDelay: `${i * 0.08}s` }}
-                >
-                  <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">
-                    {node.type}
-                  </span>
-                  <span className="text-xs font-bold text-slate-100 mt-1 truncate">{node.name}</span>
-                  <div className="mt-2 pt-1 border-t border-white/[0.04] flex items-center justify-between">
-                    <span
-                      className="text-[9px] font-mono font-bold"
-                      style={{ color: TRACE_NODE_COLORS[node.type] || '#38bdf8' }}
-                    >
-                      {node.impactLevel}
-                    </span>
-                    <span className="text-[9px] font-mono text-slate-500">Step 0{i + 1}</span>
-                  </div>
-                </div>
-                {i < visibleNodes - 1 && (
-                  <ArrowRight size={14} className="text-slate-600 flex-shrink-0" />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-
-          <div className="pt-3 border-t border-white/[0.06]">
-            <DataCascade />
-          </div>
-        </div>
+        <ImpactCascadeGraph />
       )}
 
       {/* 4 Core Quantitative Impact Metrics */}

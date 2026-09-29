@@ -23,6 +23,7 @@ import {
   Cell,
 } from 'recharts';
 import { StatusBeacon, LiveTelemetryBadge, MetricCounter } from '../components/motion';
+import { FinancialExposureFlow } from '../components/financial/FinancialExposureFlow';
 
 export default function FinancialImpactPage() {
   const [f, setF] = useState<FinancialSummary>(MOCK_FINANCIAL_SUMMARY);
@@ -134,38 +135,8 @@ export default function FinancialImpactPage() {
         </div>
       </div>
 
-      {/* Financial Exposure Value-Chain Waterfall */}
-      <div className="p-4 rounded-2xl bg-[#070b16] border border-white/[0.08] select-none">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.05] text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-          <span className="flex items-center gap-1.5">
-            <StatusBeacon variant="critical" size="sm" />
-            <span>VALUE-CHAIN EXPOSURE CASCADE // AUDIT TRACE</span>
-          </span>
-          <span className="text-rose-400 font-bold">$28.3M Modeled Cap</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
-          <div className="p-3 rounded-xl bg-[#0c1424] border border-rose-500/20">
-            <span className="text-[10px] text-slate-500 block uppercase">Port Transshipment</span>
-            <span className="text-base font-bold text-rose-400">$4.2M Locked</span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">Penang & Taiwan in-transit</span>
-          </div>
-          <div className="p-3 rounded-xl bg-[#0c1424] border border-amber-500/20">
-            <span className="text-[10px] text-slate-500 block uppercase">Raw BOM Shortage</span>
-            <span className="text-base font-bold text-amber-400">$3.6M Buffer Burn</span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">PCB assembly inventory</span>
-          </div>
-          <div className="p-3 rounded-xl bg-[#0c1424] border border-amber-500/20">
-            <span className="text-[10px] text-slate-500 block uppercase">Plant Idle Overhead</span>
-            <span className="text-base font-bold text-amber-400">$5.0M Throttling</span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">Frankfurt Hub shift delay</span>
-          </div>
-          <div className="p-3 rounded-xl bg-[#0c1424] border border-rose-500/30">
-            <span className="text-[10px] text-slate-500 block uppercase">Tier-1 Contract Exposure</span>
-            <span className="text-base font-bold text-rose-400">$15.5M SLA Risk</span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">Deutsche Telekom, Siemens, Bosch</span>
-          </div>
-        </div>
-      </div>
+      {/* Financial Exposure Flow: Deterministic Balance Sheet Accumulation */}
+      <FinancialExposureFlow />
 
       {/* Charts Dual Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

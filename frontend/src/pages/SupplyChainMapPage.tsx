@@ -351,8 +351,8 @@ export default function SupplyChainMapPage() {
     if (!mapRef.current) return;
     if (!mapInstanceRef.current) {
       const map = L.map(mapRef.current, {
-        center: [25, 60],
-        zoom: 2.2,
+        center: [22, 65],
+        zoom: 2.6,
         minZoom: 1.5,
         maxZoom: 18,
         zoomControl: false,
@@ -361,8 +361,11 @@ export default function SupplyChainMapPage() {
       mapInstanceRef.current = map;
 
       const tileLayer = L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-        { maxZoom: 16 }
+        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        {
+          subdomains: 'abcd',
+          maxZoom: 19,
+        }
       );
       tileLayer.on('tileerror', () => {
         // Silently tolerate missing tiles
@@ -396,12 +399,13 @@ export default function SupplyChainMapPage() {
     };
   }, []);
 
-  // Update map layers
+  // Update map layers with synchronized causal path highlighting
   useEffect(() => {
     const layers = mapLayersRef.current;
     if (!layers) return;
     layers.clearLayers();
 
+    // 1. Draw geographic routes with causal path illumination
     graph.edges.forEach((edge) => {
       const fromNode = graph.nodes.find((n) => n.id === edge.from);
       const toNode = graph.nodes.find((n) => n.id === edge.to);
@@ -409,7 +413,19 @@ export default function SupplyChainMapPage() {
 
       const isDisrupted = edge.status === 'DISRUPTED';
       const isAtRisk = edge.status === 'AT_RISK';
-      const color = isDisrupted ? '#f43f5e' : isAtRisk ? '#f59e0b' : '#38bdf8';
+      const isEdgeInCausalChain =
+        connectedNodeIds
+          ? connectedNodeIds.has(edge.from) && connectedNodeIds.has(edge.to)
+          : true;
+      const isDimmed = connectedNodeIds ? !isEdgeInCausalChain : false;
+
+      const color = isEdgeInCausalChain && connectedNodeIds
+        ? '#38bdf8'
+        : isDisrupted
+        ? '#f43f5e'
+        : isAtRisk
+        ? '#f59e0b'
+        : '#0ea5e9';
 
       L.polyline(
         [
@@ -418,25 +434,47 @@ export default function SupplyChainMapPage() {
         ],
         {
           color,
-          weight: isDisrupted ? 2.5 : 1.2,
-          opacity: isDisrupted ? 0.8 : 0.35,
-          dashArray: isDisrupted ? '5, 4' : undefined,
+          weight: isEdgeInCausalChain && connectedNodeIds ? 3.5 : isDisrupted ? 2.5 : 1.2,
+          opacity: isDimmed ? 0.08 : isDisrupted ? 0.9 : isEdgeInCausalChain ? 0.8 : 0.35,
+          dashArray: isDisrupted ? '6, 4' : undefined,
         }
       ).addTo(layers);
     });
 
+    // 2. Draw geographic node markers
     filteredNodes.forEach((node) => {
       if (!node.coordinates) return;
       const color = STATUS_COLORS[node.status] ?? '#94a3b8';
       const isSelected = selectedNode?.id === node.id;
+      const isInCausalChain = connectedNodeIds ? connectedNodeIds.has(node.id) : true;
+      const isDimmed = connectedNodeIds ? !isInCausalChain : false;
+
+      // Special pulsing beacon for Singapore Port Disruption
+      if (node.id.includes('SG') || node.type === 'FREIGHT_HUB') {
+        const pulseIcon = L.divIcon({
+          className: 'relative flex items-center justify-center',
+          iconSize: [24, 24],
+          html: `<div class="relative flex items-center justify-center w-6 h-6">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500 border-2 border-white shadow-[0_0_12px_#f43f5e]"></span>
+          </div>`,
+        });
+        const pulseMarker = L.marker([node.coordinates.lat, node.coordinates.lng], {
+          icon: pulseIcon,
+          opacity: isDimmed ? 0.2 : 1,
+        });
+        pulseMarker.on('click', () => setSelectedNode(node));
+        pulseMarker.addTo(layers);
+        return;
+      }
 
       const marker = L.circleMarker([node.coordinates.lat, node.coordinates.lng], {
-        radius: isSelected ? 11 : node.type === 'FACTORY' ? 8 : 6,
+        radius: isSelected ? 12 : node.type === 'FACTORY' ? 8 : 6,
         fillColor: color,
         color: isSelected ? '#ffffff' : color,
         weight: isSelected ? 2.5 : 1,
-        opacity: 0.95,
-        fillOpacity: isSelected ? 0.9 : 0.6,
+        opacity: isDimmed ? 0.2 : 0.95,
+        fillOpacity: isDimmed ? 0.1 : isSelected ? 0.9 : 0.65,
       });
 
       marker.on('click', () => {
@@ -445,7 +483,7 @@ export default function SupplyChainMapPage() {
 
       marker.addTo(layers);
     });
-  }, [graph, filteredNodes, selectedNode]);
+  }, [graph, filteredNodes, selectedNode, connectedNodeIds]);
 
   // Smooth camera flyTo when a node is selected
   useEffect(() => {

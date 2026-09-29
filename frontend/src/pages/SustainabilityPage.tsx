@@ -15,6 +15,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { StatusBeacon, LiveTelemetryBadge, MetricCounter, SignalStream } from '../components/motion';
+import { CarbonTradeOffVisualizer } from '../components/sustainability/CarbonTradeOffVisualizer';
 
 export default function SustainabilityPage() {
   const [s, setS] = useState<SustainabilityData>(MOCK_SUSTAINABILITY);
@@ -95,39 +96,8 @@ export default function SustainabilityPage() {
         </div>
       </div>
 
-      {/* Transport Mode Variance: Sea Freight vs Emergency Air Bridge */}
-      <div className="p-4 rounded-2xl bg-[#070b16] border border-white/[0.08] select-none">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.05] text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-          <span className="flex items-center gap-1.5">
-            <StatusBeacon variant="warning" size="sm" />
-            <span>MODAL CARBON TRADE-OFF VECTOR (SEA ──► AIR FREIGHT BRIDGE)</span>
-          </span>
-          <span className="text-amber-400 font-bold">+340% SCOPE-3 VARIANCE</span>
-        </div>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-3 rounded-xl bg-[#090f1e] border border-white/[0.06]">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-400">
-              <Ship size={20} />
-            </div>
-            <div>
-              <span className="text-[10px] font-mono uppercase text-slate-400">Baseline Mode: Maritime Transit</span>
-              <div className="text-sm font-bold font-mono text-sky-300">120 Tons CO2 · 28 Transit Days</div>
-            </div>
-          </div>
-
-          <SignalStream status="warning" speed="fast" label="MODAL SHIFT" />
-
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400">
-              <Plane size={20} />
-            </div>
-            <div>
-              <span className="text-[10px] font-mono uppercase text-slate-400">Expedited Mode: Air Bridge (Strategy B)</span>
-              <div className="text-sm font-bold font-mono text-rose-300">528 Tons CO2 (+340%) · 8 Days</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Carbon Trade-Off Visualizer: Multi-Modal Trajectory Comparison */}
+      <CarbonTradeOffVisualizer />
 
       {/* CO2 Chart */}
       <div className="p-5 rounded-2xl bg-[#080d19] border border-white/[0.08] space-y-3">
