@@ -24,6 +24,7 @@ import type { RecoveryStrategy } from '../types/agents';
 import { approveStrategy, fetchStrategies } from '../services/recovery';
 import { StatusBeacon, LiveTelemetryBadge, SignalStream } from '../components/motion';
 import { RecoveryStrategyGraph } from '../components/recovery/RecoveryStrategyGraph';
+import { useDemo } from '../context/DemoContext';
 
 function MetricPill({
   label,
@@ -57,6 +58,7 @@ function MetricPill({
 }
 
 export default function RecoveryPlansPage() {
+  const { rerouteState, approveReroute, learningHubProfile } = useDemo();
   const [strategies, setStrategies] = useState<RecoveryStrategy[]>(MOCK_STRATEGIES);
   const [selectedId, setSelectedId] = useState<string | null>('STRAT-B-AIR-FREIGHT');
   const [confirmed, setConfirmed] = useState(false);
@@ -64,6 +66,12 @@ export default function RecoveryPlansPage() {
   const [approving, setApproving] = useState(false);
   const [planId, setPlanId] = useState('CP-2026-0920-001');
   const [approvedAt, setApprovedAt] = useState('');
+
+  useEffect(() => {
+    if (rerouteState === 'ACTIVE' || rerouteState === 'APPROVED') {
+      setApproved(true);
+    }
+  }, [rerouteState]);
 
   useEffect(() => {
     fetchStrategies('DISR-SG-2026-001').then((data) => {
@@ -88,7 +96,8 @@ export default function RecoveryPlansPage() {
     if (!selectedId) return;
     setApproving(true);
     try {
-      const result = await approveStrategy(selectedId, 'Sarah Chen (Operations Director)');
+      approveReroute();
+      const result = await approveStrategy(selectedId, `${learningHubProfile.studentName} (Operations Director · ${learningHubProfile.studentId})`);
       setPlanId(result.planId || `CP-${selectedId.replace('STRAT-', '')}-001`);
       setApprovedAt(result.approvedAt || new Date().toISOString());
       setApproved(true);
@@ -500,9 +509,14 @@ export default function RecoveryPlansPage() {
           {/* Decision Owner & ERP Context Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
             <div className="p-3 rounded-xl bg-[#0c1424] border border-white/[0.04] space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase block font-semibold">DECISION OWNER</span>
-              <span className="font-bold text-slate-200">Sarah Chen</span>
-              <span className="text-[10px] text-slate-400 block">Operations Director // SAP S/4HANA Role: SCM_DIR</span>
+              <span className="text-[10px] text-slate-500 uppercase block font-semibold">DECISION OWNER & CREDENTIAL</span>
+              <span className="font-bold text-slate-200">{learningHubProfile.studentName}</span>
+              <span className="text-[10px] text-sky-400 block font-mono">
+                Verified: {learningHubProfile.institution}
+              </span>
+              <span className="text-[9px] text-emerald-400 block">
+                ✓ {learningHubProfile.certification} ({learningHubProfile.certificationId})
+              </span>
             </div>
             <div className="p-3 rounded-xl bg-[#0c1424] border border-white/[0.04] space-y-1">
               <span className="text-[10px] text-slate-500 uppercase block font-semibold">ERP REQUISITION MAPPING</span>

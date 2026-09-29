@@ -20,6 +20,7 @@ import GlobalRadarGlobe from '../components/maps/GlobalRadarGlobe';
 import { fetchDisruptions } from '../services/disruptions';
 import { MOCK_DISRUPTIONS } from '../data/mockData';
 import type { DisruptionEvent } from '../types/disruptions';
+import { useDemo } from '../context/DemoContext';
 
 // Fix leaflet default icon
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -69,6 +70,7 @@ const SUPPLY_FACILITIES: Array<{
 ];
 
 export default function GlobalRadarPage() {
+  const { rerouteState } = useDemo();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
@@ -348,6 +350,7 @@ export default function GlobalRadarPage() {
         {/* 3D WebGL Globe Viewport */}
         <div className={`w-full h-full ${viewMode === '3D_GLOBE' ? 'block' : 'hidden'}`}>
           <GlobalRadarGlobe
+            rerouteState={rerouteState}
             onNodeSelect={(node) => {
               const matched = disruptions.find(
                 (d) =>

@@ -39,6 +39,7 @@ const STATUS_COLORS: Record<string, string> = {
 import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
 import { HelpCircle, ShieldCheck } from 'lucide-react';
 import { StatusBeacon, LiveTelemetryBadge } from '../components/motion';
+import { useDemo } from '../context/DemoContext';
 
 const TIER_CONSEQUENCES: Record<string, string> = {
   FREIGHT_HUB: 'Corridor Blocked · +12d',
@@ -194,6 +195,7 @@ export default function SupplyChainMapPage() {
   // 1: FREIGHT_HUB -> 2: SUPPLIER -> 3: MATERIAL -> 4: FACTORY -> 5: PRODUCT -> 6: CUSTOMER
   const [propagationStep, setPropagationStep] = useState<number>(6);
   const [isTracingCausality, setIsTracingCausality] = useState(false);
+  const { rerouteState } = useDemo();
 
   useEffect(() => {
     let mounted = true;
@@ -419,7 +421,12 @@ export default function SupplyChainMapPage() {
           : true;
       const isDimmed = connectedNodeIds ? !isEdgeInCausalChain : false;
 
-      const color = isEdgeInCausalChain && connectedNodeIds
+      // When reroute is active, the disrupted sea route from Singapore is bypassed
+      const isBypassed = rerouteState === 'ACTIVE' && isDisrupted;
+
+      const color = isBypassed
+        ? '#475569'
+        : isEdgeInCausalChain && connectedNodeIds
         ? '#38bdf8'
         : isDisrupted
         ? '#f43f5e'
@@ -434,12 +441,52 @@ export default function SupplyChainMapPage() {
         ],
         {
           color,
-          weight: isEdgeInCausalChain && connectedNodeIds ? 3.5 : isDisrupted ? 2.5 : 1.2,
-          opacity: isDimmed ? 0.08 : isDisrupted ? 0.9 : isEdgeInCausalChain ? 0.8 : 0.35,
-          dashArray: isDisrupted ? '6, 4' : undefined,
+          weight: isBypassed ? 1.5 : isEdgeInCausalChain && connectedNodeIds ? 3.5 : isDisrupted ? 2.5 : 1.2,
+          opacity: isBypassed ? 0.2 : isDimmed ? 0.08 : isDisrupted ? 0.9 : isEdgeInCausalChain ? 0.8 : 0.35,
+          dashArray: isBypassed ? '4, 8' : isDisrupted ? '6, 4' : undefined,
         }
       ).addTo(layers);
     });
+
+    // 1b. If reroute is PROPOSED, APPROVED, or ACTIVE, draw the Candidate / Authorized Reroute!
+    if (rerouteState === 'PROPOSED' || rerouteState === 'APPROVED' || rerouteState === 'ACTIVE') {
+      const isRouteActive = rerouteState === 'ACTIVE';
+      const bangalore: [number, number] = [12.9716, 77.5946];
+      const frankfurt: [number, number] = [50.1109, 8.6821];
+
+      // Draw Reroute Polyline
+      const rerouteLine = L.polyline([bangalore, frankfurt], {
+        color: isRouteActive ? '#10b981' : '#f59e0b',
+        weight: isRouteActive ? 4.5 : 3.0,
+        opacity: isRouteActive ? 1.0 : 0.85,
+        dashArray: isRouteActive ? undefined : '8, 6',
+      }).addTo(layers);
+
+      rerouteLine.bindPopup(
+        isRouteActive
+          ? `<div class="p-2 font-mono text-xs">
+              <strong class="text-emerald-400 font-bold">✓ AUTHORIZED REROUTE ACTIVE</strong><br/>
+              <span>Corridor: Bangalore / Air Bridge ──► Frankfurt Hub</span><br/>
+              <span class="text-slate-400">Transit: 8 Days · Strategy B Engaged</span>
+            </div>`
+          : `<div class="p-2 font-mono text-xs">
+              <strong class="text-amber-400 font-bold">⚡ AI PROPOSED CANDIDATE REROUTE</strong><br/>
+              <span>Corridor: Bangalore / Air Bridge ──► Frankfurt Hub</span><br/>
+              <span class="text-slate-400">Awaiting Human Authorization</span>
+            </div>`
+      );
+
+      // Add special animated Reroute corridor marker at Bangalore
+      const rerouteIcon = L.divIcon({
+        className: 'relative flex items-center justify-center',
+        iconSize: [24, 24],
+        html: `<div class="relative flex items-center justify-center w-6 h-6">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${isRouteActive ? 'bg-emerald-400' : 'bg-amber-400'} opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3.5 w-3.5 ${isRouteActive ? 'bg-emerald-500' : 'bg-amber-500'} border-2 border-white shadow-[0_0_14px_${isRouteActive ? '#10b981' : '#f59e0b'}]"></span>
+        </div>`,
+      });
+      L.marker(bangalore, { icon: rerouteIcon }).addTo(layers);
+    }
 
     // 2. Draw geographic node markers
     filteredNodes.forEach((node) => {
@@ -483,7 +530,7 @@ export default function SupplyChainMapPage() {
 
       marker.addTo(layers);
     });
-  }, [graph, filteredNodes, selectedNode, connectedNodeIds]);
+  }, [graph, filteredNodes, selectedNode, connectedNodeIds, rerouteState]);
 
   // Smooth camera flyTo when a node is selected
   useEffect(() => {
@@ -652,6 +699,48 @@ export default function SupplyChainMapPage() {
                     </g>
                   );
                 })}
+
+                {/* Dynamic Autonomous Reroute SVG Vector (Candidate or Active) */}
+                {rerouteState !== 'BLOCKED' && (
+                  <g>
+                    <path
+                      d="M 70 310 C 180 310, 180 100, 320 100"
+                      fill="none"
+                      stroke={rerouteState === 'ACTIVE' ? '#10b981' : '#f59e0b'}
+                      strokeWidth={rerouteState === 'ACTIVE' ? 3.5 : 2.2}
+                      strokeDasharray={rerouteState === 'ACTIVE' ? 'none' : '4 4'}
+                      strokeOpacity={0.95}
+                    />
+                    <circle r="4" fill={rerouteState === 'ACTIVE' ? '#10b981' : '#f59e0b'} filter="drop-shadow(0 0 6px rgba(16,185,129,0.8))">
+                      <animateMotion
+                        path="M 70 310 C 180 310, 180 100, 320 100"
+                        dur={rerouteState === 'ACTIVE' ? '1.2s' : '2.0s'}
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                    <rect
+                      x={165}
+                      y={180}
+                      width={130}
+                      height={18}
+                      rx={4}
+                      fill="#060d1a"
+                      stroke={rerouteState === 'ACTIVE' ? '#10b981' : '#f59e0b'}
+                      strokeWidth={1}
+                    />
+                    <text
+                      x={230}
+                      y={192}
+                      textAnchor="middle"
+                      fill={rerouteState === 'ACTIVE' ? '#34d399' : '#fbbf24'}
+                      fontSize={8}
+                      fontWeight="bold"
+                      fontFamily="monospace"
+                    >
+                      {rerouteState === 'ACTIVE' ? '✓ AIR BRIDGE ACTIVE' : '⚡ CANDIDATE REROUTE'}
+                    </text>
+                  </g>
+                )}
 
                 {/* Nodes with Progressive Consequence Reveal and Causal Dimming */}
                 {filteredNodes.map((node) => (

@@ -85,6 +85,7 @@ const GATES: GovernanceGate[] = [
     validationLogic: [
       'Requires JWT bearer with OPERATIONS_DIRECTOR claim',
       'Enforces tenant isolation for Acme Industrial GmbH',
+      'Verifies SAP Learning Hub, student edition credentials (Sarah Chen · S-002948102)',
       'Restricts air freight budget release over $1.0M',
     ],
   },
@@ -99,7 +100,8 @@ const GATES: GovernanceGate[] = [
     desc: 'Cryptographic 2-step verification. Autonomous agents strictly prohibited from self-approving.',
     validationLogic: [
       'Requires explicit human checkbox acknowledgment',
-      'Records authorized officer identity (Operations Manager)',
+      'Cryptographically bound to verified SAP Learning Hub operator profile',
+      'Records authorized officer identity (Sarah Chen - Operations Director)',
       'Blocks automated bypassing with 100% enforcement',
     ],
   },

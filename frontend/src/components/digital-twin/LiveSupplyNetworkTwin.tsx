@@ -11,6 +11,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
+import { useDemo } from '../../context/DemoContext';
 
 export interface TwinNode {
   id: string;
@@ -336,6 +337,7 @@ export function LiveSupplyNetworkTwin({
   // Telemetry metric counters in sync with propagation
   const [activeExposedOrders, setActiveExposedOrders] = useState(22);
   const [activeExposureUSD, setActiveExposureUSD] = useState(28.3);
+  const { rerouteState } = useDemo();
 
   // Map nodes by ID for fast lookup
   const nodeMap = useMemo(() => {
@@ -538,6 +540,20 @@ export function LiveSupplyNetworkTwin({
               LIVE SUPPLY NETWORK · DIGITAL TWIN
             </span>
           </div>
+
+          {rerouteState === 'ACTIVE' && (
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold flex items-center gap-1 shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              AIR FREIGHT REROUTE ACTIVE ($24.5M PROTECTED)
+            </span>
+          )}
+          {rerouteState === 'PROPOSED' && (
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold flex items-center gap-1 animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              CANDIDATE REROUTE PROPOSED (AMBER)
+            </span>
+          )}
+
           <span className="text-slate-600">|</span>
           <span className="text-xs font-mono text-slate-400 hidden xl:inline">
             Deterministic Multi-Tier Propagation Graph (Palantir Causal Model)
@@ -664,6 +680,27 @@ export function LiveSupplyNetworkTwin({
               </g>
             );
           })}
+
+          {/* 1b. Dynamic Autonomous Bypass Spline (Air Freight Bridge) */}
+          {rerouteState !== 'BLOCKED' && (
+            <g>
+              <path
+                d="M 35 28 C 49 18, 49 46, 63 46"
+                fill="none"
+                stroke={rerouteState === 'ACTIVE' ? '#10b981' : '#f59e0b'}
+                strokeWidth={rerouteState === 'ACTIVE' ? '2.5' : '1.8'}
+                strokeDasharray={rerouteState === 'ACTIVE' ? 'none' : '2 2'}
+                filter="url(#glowFilter)"
+              />
+              <circle r="3.5" fill={rerouteState === 'ACTIVE' ? '#10b981' : '#f59e0b'}>
+                <animateMotion
+                  path="M 35 28 C 49 18, 49 46, 63 46"
+                  dur={rerouteState === 'ACTIVE' ? '1.2s' : '2.0s'}
+                  repeatCount="indefinite"
+                />
+              </circle>
+            </g>
+          )}
 
           {/* 2. Flowing Animated Signal Particles */}
           {particles.map((p) => {

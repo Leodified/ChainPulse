@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowRight,
   Bot,
+  Check,
   CheckCircle,
   Clock,
   Cpu,
@@ -23,6 +24,7 @@ import { fetchAgentActivities } from '../services/agents';
 import { MOCK_AGENT_ACTIVITIES } from '../data/mockData';
 import { AgentSwarmCanvas } from '../components/agents/AgentSwarmCanvas';
 import type { AgentType, AgentActivity } from '../types/agents';
+import { useDemo } from '../context/DemoContext';
 
 type AgentStatusStage = 'WAITING' | 'ANALYSING' | 'COMPLETE';
 
@@ -86,6 +88,7 @@ export default function AgentSwarmPage() {
   const navigate = useNavigate();
   const { disruptionId } = useParams<{ disruptionId?: string }>();
   const activeDisruptionId = disruptionId || 'DISR-SG-2026-001';
+  const { rerouteState, approveReroute, learningHubProfile } = useDemo();
   const [activities, setActivities] = useState<AgentActivity[]>(MOCK_AGENT_ACTIVITIES);
   const [selectedAgentType, setSelectedAgentType] = useState<AgentType>('ORCHESTRATOR');
 
@@ -324,19 +327,63 @@ export default function AgentSwarmPage() {
             </p>
           </div>
 
+          {/* Operational Rerouting Handoff Pipeline */}
+          <div className="p-3.5 rounded-xl bg-[#060b17] border border-white/[0.08] flex flex-col md:flex-row items-center justify-between gap-3 text-xs font-mono">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] text-slate-500 uppercase font-bold">OPERATIONAL PIPELINE:</span>
+              <span className="text-emerald-400 font-bold">Recovery Agent</span>
+              <span className="text-slate-600">──►</span>
+              <span className="text-sky-400 font-bold">Route Optimizer</span>
+              <span className="text-slate-600">──►</span>
+              <span className={rerouteState === 'ACTIVE' ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+                {rerouteState === 'ACTIVE' ? 'Air Bridge (Active)' : 'Candidate Route (Amber)'}
+              </span>
+              <span className="text-slate-600">──►</span>
+              <span className="text-purple-400 font-bold">Orchestrator</span>
+              <span className="text-slate-600">──►</span>
+              <span className="text-rose-400 font-bold">Human Gate</span>
+            </div>
+
+            <div className="text-[10px] text-slate-400">
+              Operator Sign-off: <strong className="text-slate-200">{learningHubProfile.studentName}</strong> (SAP Certified)
+            </div>
+          </div>
+
           {/* Decision Payoff CTA */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
             <span className="text-xs font-mono text-slate-400">
-              Audit status: <span className="text-emerald-400 font-semibold">All 6 agents synchronized</span>
+              Governance Gate:{' '}
+              {rerouteState === 'ACTIVE' ? (
+                <span className="text-emerald-400 font-semibold">✓ Cryptographic Sign-Off Verified</span>
+              ) : (
+                <span className="text-amber-400 font-semibold">Awaiting Operations Authorization</span>
+              )}
             </span>
 
-            <button
-              onClick={() => navigate('/recovery')}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(56,189,248,0.4)]"
-            >
-              <span>Review Recovery Strategies in Decision Room</span>
-              <ArrowRight size={15} />
-            </button>
+            <div className="flex items-center gap-3 flex-wrap">
+              {rerouteState !== 'ACTIVE' ? (
+                <button
+                  onClick={approveReroute}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.5)] cursor-pointer"
+                >
+                  <Zap size={14} className="fill-slate-950" />
+                  <span>AUTHORIZE & ACTIVATE REROUTE (HUMAN GATE)</span>
+                </button>
+              ) : (
+                <span className="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono text-xs font-bold flex items-center gap-2 shadow-[0_0_16px_rgba(16,185,129,0.3)]">
+                  <Check size={14} className="text-emerald-400" />
+                  <span>ROUTE ACTIVATED & COMMITTED TO SAP</span>
+                </span>
+              )}
+
+              <button
+                onClick={() => navigate('/recovery')}
+                className="px-4 py-2.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-200 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+              >
+                <span>Full Recovery Dossier</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
           </div>
         </div>
       )}

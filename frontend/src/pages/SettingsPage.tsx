@@ -18,11 +18,48 @@ import { StatusIndicator } from '../components/ui/StatusIndicator';
 import { auditService, type AuditEvent } from '../services/audit';
 import { StatusBeacon, LiveTelemetryBadge } from '../components/motion';
 import { GovernancePipeline } from '../components/governance/GovernancePipeline';
+import { SAPLearningHubCard } from '../components/learning-hub/SAPLearningHubCard';
+import { useDemo } from '../context/DemoContext';
 
 export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
+  const { auditEvents: demoAuditEvents } = useDemo();
+
+  const combinedAuditEvents = React.useMemo(() => {
+    const list: Array<{
+      id: string | number;
+      event_type: string;
+      user_id: string;
+      entity_id: string;
+      description: string;
+      created_at: string;
+      ip_address: string;
+    }> = demoAuditEvents.map((d) => ({
+      id: d.id,
+      event_type: d.eventType,
+      user_id: d.actor,
+      entity_id: d.targetEntity,
+      description: d.description,
+      created_at: d.timestamp,
+      ip_address: d.ipAddress,
+    }));
+    auditEvents.forEach((e) => {
+      if (!list.some((item) => item.event_type === e.event_type && item.entity_id === e.entity_id)) {
+        list.push({
+          id: e.id,
+          event_type: e.event_type,
+          user_id: e.user_id,
+          entity_id: e.entity_id,
+          description: e.description,
+          created_at: e.created_at,
+          ip_address: e.ip_address,
+        });
+      }
+    });
+    return list;
+  }, [demoAuditEvents, auditEvents]);
 
   useEffect(() => {
     loadAuditEvents();
@@ -119,15 +156,16 @@ export default function SettingsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
-              {auditEvents.length === 0 ? (
+              {combinedAuditEvents.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-500">
                     No audit events recorded yet.
                   </td>
                 </tr>
               ) : (
-                auditEvents.map((evt) => {
-                  const isApproved = evt.event_type === 'STRATEGY_APPROVED';
+                combinedAuditEvents.map((evt) => {
+                  const isApproved = evt.event_type === 'STRATEGY_APPROVED' || evt.event_type === 'HUMAN_APPROVAL_GRANTED' || evt.event_type === 'ROUTE_ACTIVATED';
+                  const isReroute = evt.event_type.includes('REROUT') || evt.event_type.includes('ROUTE');
                   const isAgent = evt.user_id.startsWith('agent:');
 
                   return (
@@ -140,6 +178,8 @@ export default function SettingsPage() {
                           className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase border ${
                             isApproved
                               ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                              : isReroute
+                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
                               : isAgent
                               ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
                               : 'bg-white/[0.05] text-slate-400 border-white/[0.08]'
@@ -151,7 +191,7 @@ export default function SettingsPage() {
                       <td className="py-2.5 px-3 font-medium text-slate-200 whitespace-nowrap">
                         {evt.user_id}
                       </td>
-                      <td className="py-2.5 px-3 text-sky-400 whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-sky-400 whitespace-nowrap font-bold">
                         {evt.entity_id}
                       </td>
                       <td className="py-2.5 px-3 text-slate-300 font-sans max-w-[420px] truncate" title={evt.description}>
@@ -168,6 +208,9 @@ export default function SettingsPage() {
           </table>
         </div>
       </div>
+
+      {/* SAP LEARNING HUB, STUDENT EDITION INTEGRATION BOUNDARY */}
+      <SAPLearningHubCard />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Enterprise Context */}

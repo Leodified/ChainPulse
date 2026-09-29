@@ -158,9 +158,13 @@ function latLngToVector3(lat: number, lng: number, radius: number): THREE.Vector
 
 interface GlobalRadarGlobeProps {
   onNodeSelect?: (node: GlobeIncident) => void;
+  rerouteState?: 'BLOCKED' | 'PROPOSED' | 'APPROVED' | 'ACTIVE';
 }
 
-export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
+export function GlobalRadarGlobe({
+  onNodeSelect,
+  rerouteState = 'BLOCKED',
+}: GlobalRadarGlobeProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [selectedIncident, setSelectedIncident] = useState<GlobeIncident>(GLOBAL_NODES[0]);
   const [isRotating, setIsRotating] = useState(true);
@@ -350,7 +354,8 @@ export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
       const points = curve.getPoints(50);
       const curveGeo = new THREE.BufferGeometry().setFromPoints(points);
 
-      const arcColor =
+      // Dynamic arc state based on rerouteState
+      let arcColor =
         arc.status === 'critical'
           ? 0xf43f5e
           : arc.status === 'warning'
@@ -358,11 +363,35 @@ export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
           : arc.status === 'alternate'
           ? 0x10b981
           : 0x38bdf8;
+      let arcOpacity = arc.status === 'critical' ? 0.85 : 0.4;
+      let arcSpeed = arc.status === 'critical' ? 0.35 : 0.2;
+
+      if (arc.id === 'arc-5') {
+        // Bangalore to Frankfurt reroute arc
+        if (rerouteState === 'ACTIVE') {
+          arcColor = 0x10b981; // Vibrant Emerald
+          arcOpacity = 1.0;
+          arcSpeed = 0.55;
+        } else if (rerouteState === 'PROPOSED' || rerouteState === 'APPROVED') {
+          arcColor = 0xf59e0b; // Amber Candidate
+          arcOpacity = 0.95;
+          arcSpeed = 0.35;
+        } else {
+          arcColor = 0x334155;
+          arcOpacity = 0.15;
+          arcSpeed = 0.1;
+        }
+      } else if (arc.id === 'arc-2' && rerouteState === 'ACTIVE') {
+        // Disrupted sea route bypassed
+        arcColor = 0x475569;
+        arcOpacity = 0.15;
+        arcSpeed = 0.05;
+      }
 
       const curveMat = new THREE.LineBasicMaterial({
         color: arcColor,
         transparent: true,
-        opacity: arc.status === 'critical' ? 0.85 : 0.4,
+        opacity: arcOpacity,
         linewidth: 2,
       });
 
@@ -373,7 +402,7 @@ export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
       arcCurves.push({
         curve,
         color: arcColor,
-        speed: arc.status === 'critical' ? 0.35 : 0.2,
+        speed: arcSpeed,
       });
 
       // Flowing Energy Packet (Small glowing sphere)
@@ -565,7 +594,7 @@ export function GlobalRadarGlobe({ onNodeSelect }: GlobalRadarGlobeProps) {
       }
       renderer.dispose();
     };
-  }, []);
+  }, [rerouteState]);
 
   // Smooth Camera FlyTo on Node Focus
   const focusOnNode = (node: GlobeIncident) => {

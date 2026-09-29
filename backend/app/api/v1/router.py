@@ -16,12 +16,14 @@ from app.api.v1 import (
     simulations,
     supply_chain,
     sustainability,
+    integrations,
 )
 
 router = APIRouter()
 
 router.include_router(auth.router)
 router.include_router(audit.router)
+router.include_router(integrations.router)
 
 router.include_router(overview.router)
 router.include_router(disruptions.router)

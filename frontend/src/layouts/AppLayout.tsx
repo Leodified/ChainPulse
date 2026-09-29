@@ -5,6 +5,7 @@ import { Clock, Menu, FileText, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { ExecutiveBriefModal } from '../components/ui/ExecutiveBriefModal';
 import { StatusBeacon } from '../components/motion';
+import { LiveDemoControlBar } from '../components/demo/LiveDemoControlBar';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -87,6 +88,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
           </div>
         </header>
+
+        {/* Global Grand Finale Showcase Control Bar */}
+        <LiveDemoControlBar />
 
         {/* Dynamic Atmosphere Background */}
         <div className="absolute inset-0 cp-telemetry-grid pointer-events-none opacity-60 z-0" />
