@@ -23,6 +23,7 @@ import { fetchOverview } from '../services/overview';
 import { MOCK_OVERVIEW } from '../data/mockData';
 import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
 import { ExecutiveBriefModal } from '../components/ui/ExecutiveBriefModal';
+import { AnimatedNumber } from '../components/ui/AnimatedNumber';
 import { HelpCircle, FileText, CheckCircle2 } from 'lucide-react';
 
 interface NodeTelemetry {
@@ -99,11 +100,12 @@ export default function OverviewPage() {
   const [selectedNode, setSelectedNode] = useState<NodeTelemetry>(CAUSAL_CHAIN[0]);
   const [pulseStep, setPulseStep] = useState(0);
 
-  // Cinematic Initialization Sequence States
-  const [isInitializing, setIsInitializing] = useState(() => {
-    return !sessionStorage.getItem('cp_initialized');
-  });
-  const [initStage, setInitStage] = useState(0); // 0: sweep, 1: detected, 2: revealed, 3: settled
+  // Cinematic In-Place Initialization Sequence States (no black modal screen)
+  const [isInitialized, setIsInitialized] = useState(() => !!sessionStorage.getItem('cp_initialized'));
+  const [initStage, setInitStage] = useState(isInitialized ? 4 : 0); // 0: ambient grid, 1: nodes illuminate, 2: disruption alert, 3: metric countup, 4: settled
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [isolatedNodeId, setIsolatedNodeId] = useState<string | null>(null);
+  const [isManualPulsing, setIsManualPulsing] = useState(false);
 
   const [whyDetails, setWhyDetails] = useState<WhyDetails | null>(null);
   const [whyModalOpen, setWhyModalOpen] = useState(false);
@@ -154,91 +156,78 @@ export default function OverviewPage() {
     fetchOverview().then((data) => {
       if (data) setOverview(data);
     });
+  }, []);
 
+  // Sequential Causal Wave propagation loop
+  useEffect(() => {
     const interval = setInterval(() => {
       setPulseStep((prev) => (prev + 1) % CAUSAL_CHAIN.length);
-    }, 1800);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
-  // Run initial cinematic sequence (700-1100ms total)
+  // Run in-place initialization sequence (~900-1400ms) without full-screen blackout
   useEffect(() => {
-    if (!isInitializing) return;
+    if (isInitialized) return;
 
-    const t1 = setTimeout(() => setInitStage(1), 320);
-    const t2 = setTimeout(() => setInitStage(2), 650);
-    const t3 = setTimeout(() => {
-      setInitStage(3);
-      setIsInitializing(false);
+    const t1 = setTimeout(() => setInitStage(1), 220); // Shell + nodes materialize
+    const t2 = setTimeout(() => setInitStage(2), 550); // Disruption alert triggers
+    const t3 = setTimeout(() => setInitStage(3), 850); // Animated numbers count up
+    const t4 = setTimeout(() => {
+      setInitStage(4);
+      setIsInitialized(true);
       sessionStorage.setItem('cp_initialized', 'true');
-    }, 1050);
+    }, 1250);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
+      clearTimeout(t4);
     };
-  }, [isInitializing]);
+  }, [isInitialized]);
+
+  // Re-trigger causal propagation wave manually across all 7 tiers
+  const triggerPropagationWave = () => {
+    setIsManualPulsing(true);
+    let step = 0;
+    setPulseStep(0);
+    const interval = setInterval(() => {
+      step++;
+      if (step >= CAUSAL_CHAIN.length) {
+        clearInterval(interval);
+        setIsManualPulsing(false);
+      } else {
+        setPulseStep(step);
+      }
+    }, 160);
+  };
 
   function replayInitialization() {
-    setIsInitializing(true);
     setInitStage(0);
-    setTimeout(() => setInitStage(1), 320);
-    setTimeout(() => setInitStage(2), 650);
+    setIsInitialized(false);
+    triggerPropagationWave();
+    setTimeout(() => setInitStage(1), 200);
+    setTimeout(() => setInitStage(2), 500);
+    setTimeout(() => setInitStage(3), 800);
     setTimeout(() => {
-      setInitStage(3);
-      setIsInitializing(false);
-    }, 1050);
+      setInitStage(4);
+      setIsInitialized(true);
+    }, 1200);
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1700px] mx-auto relative">
-      {/* Cinematic Initialization Overlay */}
-      {isInitializing && (
-        <div className="fixed inset-0 z-50 bg-[#040711]/95 backdrop-blur-xl flex flex-col items-center justify-center pointer-events-none transition-opacity duration-300">
-          <div className="space-y-4 text-center max-w-lg px-6 animate-fade-in">
-            <div className="flex items-center justify-center gap-2 text-sky-400 font-mono text-xs uppercase tracking-widest font-semibold">
-              <Radio size={16} className="animate-pulse" />
-              <span>CHAINPULSE // GLOBAL SUPPLY NETWORK</span>
-            </div>
-
-            <div className="text-xl font-bold font-mono text-slate-100 tracking-tight">
-              {initStage === 0 && 'INITIALIZING NETWORK TELEMETRY...'}
-              {initStage === 1 && 'CRITICAL SIGNAL DETECTED: SINGAPORE PORT'}
-              {initStage >= 2 && 'NETWORK CAUSALITY MATRIX SYNTHESIZED'}
-            </div>
-
-            {/* Progressive Impact Tally */}
-            <div
-              className={`transition-all duration-300 flex items-center justify-center gap-3 flex-wrap font-mono text-xs ${
-                initStage >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-              }`}
-            >
-              <span className="px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                4 SUPPLIERS EXPOSED
-              </span>
-              <span className="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                7 MATERIALS
-              </span>
-              <span className="px-2.5 py-1 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                68 FACTORIES
-              </span>
-              <span className="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                22 ORDERS
-              </span>
-              <span className="px-2.5 py-1 rounded bg-rose-500/25 text-rose-300 border border-rose-500/40 font-bold">
-                $28.3M MAX EXPOSURE
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <div
+      className={`p-6 space-y-6 max-w-[1700px] mx-auto relative transition-opacity duration-700 ${
+        initStage === 0 ? 'opacity-30' : 'opacity-100'
+      }`}
+    >
       {/* Top Intelligence Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono tracking-[0.25em] text-cyan-400 font-black uppercase">
+            <span className="text-[11px] font-mono tracking-[0.25em] text-cyan-400 font-black uppercase flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
               CHAINPULSE
             </span>
             <span className="text-slate-600">/</span>
@@ -248,16 +237,16 @@ export default function OverviewPage() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1 flex flex-wrap items-center gap-3">
             Command Center
-            <span className="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 flex items-center gap-1.5">
+            <span className="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 flex items-center gap-1.5 shadow-[0_0_12px_rgba(244,63,94,0.15)]">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
               ● CRITICAL DISRUPTION DETECTED
             </span>
           </h1>
         </div>
 
-        {/* Global Floating Metric Strip with Why provenance triggers */}
+        {/* Global Floating Metric Strip with Why provenance triggers & Animated Numbers */}
         <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 lg:pb-0">
-          <div className="px-3 py-1.5 rounded-xl bg-[#0a1122] border border-white/[0.08] flex flex-col min-w-[110px] relative group">
+          <div className="px-3 py-1.5 rounded-xl bg-[#0a1122] border border-white/[0.08] flex flex-col min-w-[115px] relative group hover:border-rose-500/30 transition-colors">
             <div className="flex items-center justify-between">
               <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Total Exposure</span>
               <button
@@ -269,12 +258,14 @@ export default function OverviewPage() {
               </button>
             </div>
             <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-base font-bold font-mono text-rose-400">$28.3M</span>
+              <span className="text-base font-bold font-mono text-rose-400">
+                <AnimatedNumber value={28.3} prefix="$" suffix="M" decimals={1} durationMs={800} />
+              </span>
               <span className="text-[10px] font-mono text-slate-500">max</span>
             </div>
           </div>
 
-          <div className="px-3 py-1.5 rounded-xl bg-[#0a1122] border border-white/[0.08] flex flex-col min-w-[105px]">
+          <div className="px-3 py-1.5 rounded-xl bg-[#0a1122] border border-white/[0.08] flex flex-col min-w-[110px] hover:border-amber-500/30 transition-colors">
             <div className="flex items-center justify-between">
               <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">At-Risk Orders</span>
               <button
@@ -286,16 +277,18 @@ export default function OverviewPage() {
               </button>
             </div>
             <span className="text-base font-bold font-mono text-amber-400 mt-0.5">
-              {overview.ordersExposed ?? 22} Orders
+              <AnimatedNumber value={overview.ordersExposed ?? 22} suffix=" Orders" durationMs={700} />
             </span>
           </div>
 
-          <div className="px-3 py-1.5 rounded-xl bg-[#0a1122] border border-white/[0.08] flex flex-col min-w-[95px]">
+          <div className="px-3 py-1.5 rounded-xl bg-[#0a1122] border border-white/[0.08] flex flex-col min-w-[100px] hover:border-sky-500/30 transition-colors">
             <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Exposed Nodes</span>
-            <span className="text-base font-bold font-mono text-sky-400 mt-0.5">26 Total</span>
+            <span className="text-base font-bold font-mono text-sky-400 mt-0.5">
+              <AnimatedNumber value={26} suffix=" Total" durationMs={600} />
+            </span>
           </div>
 
-          <div className="px-3 py-1.5 rounded-xl bg-[#0a1122] border border-white/[0.08] flex flex-col min-w-[110px]">
+          <div className="px-3 py-1.5 rounded-xl bg-[#0a1122] border border-white/[0.08] flex flex-col min-w-[110px] hover:border-emerald-500/30 transition-colors">
             <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Recovery Time</span>
             <span className="text-base font-bold font-mono text-emerald-400 mt-0.5">8–18 Days</span>
           </div>
@@ -310,27 +303,37 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      {/* Disruption Alert Strip */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950/30 via-[#0d172e] to-[#0a1226] border border-rose-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[0_0_30px_rgba(244,63,94,0.08)]">
+      {/* Disruption Alert Strip with Coral Breathing Glow */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950/40 via-[#0d172e] to-[#0a1226] border border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[0_0_35px_rgba(244,63,94,0.12)] animate-coral-breath">
         <div className="flex items-center gap-3.5">
-          <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 shrink-0">
-            <AlertTriangle size={22} />
+          <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 shrink-0 relative">
+            <span className="animate-ping absolute inset-0 rounded-xl bg-rose-500/30 opacity-75" />
+            <AlertTriangle size={22} className="relative z-10" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-black font-mono text-white tracking-tight">SINGAPORE PORT DISRUPTION</span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/25 text-rose-200 border border-rose-500/40 font-bold shadow-[0_0_10px_rgba(244,63,94,0.3)]">
                 ● CRITICAL
               </span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold flex items-center gap-1.5">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
+                </span>
+                PROPAGATING
+              </span>
             </div>
-            <div className="text-xs text-slate-300 font-mono mt-1 flex flex-wrap items-center gap-x-2">
-              <span>Detected 09:42 UTC</span>
+            <div className="text-xs text-slate-300 font-mono mt-1.5 flex flex-wrap items-center gap-x-2">
+              <span className="text-slate-400">Detected 09:42 UTC</span>
               <span className="text-slate-600">•</span>
-              <span className="text-amber-300 font-semibold">Propagating</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-slate-200">22 orders exposed</span>
+              <span className="text-slate-200 font-semibold">22 orders exposed</span>
               <span className="text-slate-600">•</span>
               <span className="text-rose-400 font-bold">$28.3M max exposure</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-sky-300">4 suppliers</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-300">7 materials</span>
             </div>
           </div>
         </div>
@@ -344,7 +347,7 @@ export default function OverviewPage() {
           </button>
           <button
             onClick={() => setBriefOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+            className="px-3.5 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:scale-[1.02]"
           >
             <FileText size={14} />
             <span>EXECUTIVE BRIEF</span>
@@ -358,9 +361,9 @@ export default function OverviewPage() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-rose-500/[0.03] rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-sky-500/[0.03] rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5">
+        <div className="relative z-10 flex flex-col gap-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
@@ -374,9 +377,29 @@ export default function OverviewPage() {
               </span>
             </div>
 
-            <div className="text-xs font-mono text-slate-400 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-              <span>CAUSALITY VECTOR STREAM ACTIVE</span>
+            <div className="flex items-center gap-3">
+              {isolatedNodeId && (
+                <button
+                  onClick={() => setIsolatedNodeId(null)}
+                  className="px-2.5 py-1 rounded-lg bg-sky-500/20 border border-sky-400/40 text-sky-300 text-[11px] font-mono flex items-center gap-1.5 hover:bg-sky-500/30 transition-colors"
+                >
+                  <RotateCcw size={11} />
+                  <span>RESET ISOLATION</span>
+                </button>
+              )}
+              <button
+                onClick={triggerPropagationWave}
+                disabled={isManualPulsing}
+                className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-mono text-sky-300 flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                title="Replay causal propagation wave across all 7 tiers"
+              >
+                <Radio size={12} className={isManualPulsing ? 'animate-spin text-rose-400' : 'animate-pulse text-sky-400'} />
+                <span>{isManualPulsing ? 'PROPAGATING...' : 'TRIGGER PROPAGATION PULSE'}</span>
+              </button>
+              <div className="text-xs font-mono text-slate-400 hidden xl:flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
+                <span>VECTOR STREAM ACTIVE</span>
+              </div>
             </div>
           </div>
 
@@ -384,19 +407,45 @@ export default function OverviewPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 py-2">
             {CAUSAL_CHAIN.map((node, index) => {
               const isSelected = selectedNode.id === node.id;
+              const isHovered = hoveredNodeId === node.id;
               const isPulsing = pulseStep === index;
+              const isIsolated = isolatedNodeId === node.id;
+              const hasIsolationActive = isolatedNodeId !== null;
+
+              // Calculate opacity based on focus/isolation
+              let cardOpacity = 'opacity-100';
+              if (hasIsolationActive) {
+                cardOpacity = isIsolated ? 'opacity-100 ring-2 ring-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.3)]' : 'opacity-25 blur-[0.5px]';
+              } else if (hoveredNodeId !== null && !isHovered && !isSelected) {
+                cardOpacity = 'opacity-40';
+              }
+
               return (
                 <div
                   key={node.id}
-                  onClick={() => setSelectedNode(node)}
-                  className={`relative flex flex-col justify-between p-3.5 rounded-xl cursor-pointer transition-all duration-300 border ${
-                    isSelected
+                  onClick={() => {
+                    setSelectedNode(node);
+                    setIsolatedNodeId(isolatedNodeId === node.id ? null : node.id);
+                  }}
+                  onMouseEnter={() => setHoveredNodeId(node.id)}
+                  onMouseLeave={() => setHoveredNodeId(null)}
+                  className={`relative flex flex-col justify-between p-3.5 rounded-xl cursor-pointer transition-all duration-300 border cp-card-interactive ${cardOpacity} ${
+                    isIsolated
+                      ? 'bg-sky-500/15 border-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.25)] scale-[1.03]'
+                      : isSelected
                       ? 'bg-sky-500/10 border-sky-400/50 shadow-[0_0_20px_rgba(56,189,248,0.15)] -translate-y-1'
+                      : isHovered
+                      ? 'bg-white/[0.08] border-white/30 scale-[1.03] shadow-[0_8px_25px_rgba(0,0,0,0.5)]'
                       : isPulsing
-                      ? 'bg-white/[0.04] border-white/20 -translate-y-0.5'
-                      : 'bg-[#0b1222]/80 border-white/[0.06] hover:border-white/15 hover:bg-[#0e172a]'
+                      ? 'bg-white/[0.06] border-white/30 -translate-y-0.5 shadow-[0_0_15px_rgba(255,255,255,0.1)]'
+                      : 'bg-[#0b1222]/80 border-white/[0.06] hover:border-white/20 hover:bg-[#0e172a]'
                   }`}
                 >
+                  {/* Energy propagation flash */}
+                  {isPulsing && (
+                    <span className="absolute inset-0 rounded-xl bg-sky-400/10 animate-pulse pointer-events-none" />
+                  )}
+
                   <div className="flex items-center justify-between gap-1 mb-2">
                     <span className="text-[9px] font-mono text-slate-400 font-semibold tracking-wider">
                       {node.stage}
@@ -404,16 +453,18 @@ export default function OverviewPage() {
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
                         node.status === 'critical'
-                          ? 'bg-rose-400 shadow-[0_0_6px_#f43f5e]'
+                          ? 'bg-rose-400 shadow-[0_0_8px_#f43f5e]'
                           : node.status === 'warning'
-                          ? 'bg-amber-400 shadow-[0_0_6px_#f59e0b]'
+                          ? 'bg-amber-400 shadow-[0_0_8px_#f59e0b]'
                           : 'bg-emerald-400'
                       }`}
                     />
                   </div>
 
                   <div className="min-h-[46px]">
-                    <div className="text-xs font-bold text-slate-100 tracking-tight truncate">{node.title}</div>
+                    <div className="text-xs font-bold text-slate-100 tracking-tight truncate flex items-center justify-between">
+                      <span>{node.title}</span>
+                    </div>
                     <div className="text-[10px] text-slate-400 mt-0.5 line-clamp-2 leading-tight">
                       {node.detail}
                     </div>
@@ -431,8 +482,8 @@ export default function OverviewPage() {
                   </div>
 
                   {index < CAUSAL_CHAIN.length - 1 && (
-                    <div className="hidden lg:flex absolute -right-2 top-1/2 -translate-y-1/2 z-20 w-4 h-4 rounded-full bg-[#080d19] border border-white/10 items-center justify-center">
-                      <ChevronRight size={10} className="text-slate-400" />
+                    <div className="hidden lg:flex absolute -right-2 top-1/2 -translate-y-1/2 z-20 w-4 h-4 rounded-full bg-[#080d19] border border-white/10 items-center justify-center shadow-[0_0_8px_rgba(0,0,0,0.8)]">
+                      <ChevronRight size={10} className={isPulsing ? 'text-sky-300' : 'text-slate-400'} />
                     </div>
                   )}
                 </div>
@@ -444,12 +495,15 @@ export default function OverviewPage() {
           <div className="mt-2 p-4 rounded-xl bg-[#090f1d] border border-white/[0.07] flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 flex-shrink-0">
-                <Activity size={18} />
+                <Activity size={18} className="animate-pulse" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono font-semibold text-sky-300">{selectedNode.stage} DETAIL:</span>
                   <span className="text-sm font-bold text-slate-100">{selectedNode.title}</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.05] text-slate-300 border border-white/10">
+                    Impact: {selectedNode.metric}
+                  </span>
                 </div>
                 <div className="text-xs text-slate-400 mt-0.5">{selectedNode.detail}</div>
               </div>
@@ -458,20 +512,20 @@ export default function OverviewPage() {
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button
                 onClick={() => navigate('/impact/DISR-SG-2026-001')}
-                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-300 text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 group"
+                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-300 text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 group hover:scale-[1.02]"
               >
                 <span>Trace Full Impact</span>
                 <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
               </button>
               <button
                 onClick={() => navigate('/simulations')}
-                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-slate-200 text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2"
+                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-slate-200 text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 hover:scale-[1.02]"
               >
                 <span>Simulate Future</span>
               </button>
               <button
                 onClick={() => navigate('/recovery')}
-                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30 text-emerald-300 text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2"
+                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30 text-emerald-300 text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 hover:scale-[1.02]"
               >
                 <span>Strategic Recovery</span>
               </button>

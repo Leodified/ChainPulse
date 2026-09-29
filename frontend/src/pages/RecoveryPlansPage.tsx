@@ -350,10 +350,10 @@ export default function RecoveryPlansPage() {
             <div
               key={strategy.id}
               onClick={() => setSelectedId(strategy.id)}
-              className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 border flex flex-col justify-between ${
+              className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 border flex flex-col justify-between cp-card-interactive ${
                 isSelected
                   ? 'bg-sky-500/10 border-sky-400 shadow-[0_0_36px_rgba(56,189,248,0.25)] scale-[1.02] z-10'
-                  : 'bg-[#080d19] border-white/[0.06] hover:border-white/20 opacity-75 hover:opacity-100 scale-[0.98]'
+                  : 'bg-[#080d19] border-white/[0.06] hover:border-white/20 opacity-80 hover:opacity-100'
               }`}
             >
               <div className="space-y-4">

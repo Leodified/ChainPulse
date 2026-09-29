@@ -23,6 +23,7 @@ import { Badge } from '../components/ui/Badge';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
+import { AnimatedNumber } from '../components/ui/AnimatedNumber';
 import { HelpCircle, ShieldCheck, Dna } from 'lucide-react';
 import { traceImpact } from '../services/impact';
 import { fetchDisruptionById } from '../services/disruptions';
@@ -297,22 +298,28 @@ export default function ImpactAnalysisPage() {
 
       {/* 4 Core Quantitative Impact Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col">
+        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col cp-card-interactive">
           <span className="text-[10px] font-mono text-slate-400 uppercase">Inventory Depletion</span>
-          <span className="text-2xl font-bold font-mono text-amber-400 mt-1">45% Remaining</span>
+          <span className="text-2xl font-bold font-mono text-amber-400 mt-1">
+            <AnimatedNumber value={45} suffix="% Remaining" durationMs={600} />
+          </span>
           <span className="text-[11px] text-slate-500 mt-0.5">7-Day safety buffer forecast</span>
         </div>
-        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col">
+        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col cp-card-interactive">
           <span className="text-[10px] font-mono text-slate-400 uppercase">Production Utilization</span>
-          <span className="text-2xl font-bold font-mono text-amber-400 mt-1">70% Operational</span>
+          <span className="text-2xl font-bold font-mono text-amber-400 mt-1">
+            <AnimatedNumber value={70} suffix="% Operational" durationMs={600} />
+          </span>
           <span className="text-[11px] text-slate-500 mt-0.5">Frankfurt Assembly Hub</span>
         </div>
-        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col">
+        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col cp-card-interactive">
           <span className="text-[10px] font-mono text-slate-400 uppercase">Exposed Customer Orders</span>
-          <span className="text-2xl font-bold font-mono text-rose-400 mt-1">22 Orders</span>
+          <span className="text-2xl font-bold font-mono text-rose-400 mt-1">
+            <AnimatedNumber value={22} suffix=" Orders" durationMs={600} />
+          </span>
           <span className="text-[11px] text-slate-500 mt-0.5">$28.3M maximum financial risk</span>
         </div>
-        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col">
+        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col cp-card-interactive">
           <span className="text-[10px] font-mono text-slate-400 uppercase">Estimated Recovery Window</span>
           <span className="text-2xl font-bold font-mono text-emerald-400 mt-1">8–18 Days</span>
           <span className="text-[11px] text-slate-500 mt-0.5">Dependent on strategic intervention</span>

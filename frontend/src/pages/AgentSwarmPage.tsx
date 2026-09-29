@@ -319,12 +319,12 @@ export default function AgentSwarmPage() {
                   <div
                     key={type}
                     onClick={() => setSelectedAgentType(type)}
-                    className={`p-3.5 rounded-xl cursor-pointer transition-all duration-200 border flex flex-col justify-between ${
+                    className={`p-3.5 rounded-xl cursor-pointer transition-all duration-300 border flex flex-col justify-between cp-card-interactive ${
                       isSelected
-                        ? 'bg-white/[0.08] border-sky-400/80 shadow-[0_0_20px_rgba(56,189,248,0.2)] -translate-y-0.5'
+                        ? 'bg-white/[0.08] border-sky-400/80 shadow-[0_0_24px_rgba(56,189,248,0.25)] -translate-y-1 scale-[1.02]'
                         : status === 'ANALYSING'
-                        ? 'bg-sky-500/10 border-sky-400/50 animate-pulse'
-                        : 'bg-[#080d19] border-white/[0.06] hover:border-white/15'
+                        ? 'bg-sky-500/15 border-sky-400/70 shadow-[0_0_20px_rgba(56,189,248,0.3)] animate-pulse'
+                        : 'bg-[#080d19] border-white/[0.06] hover:border-white/20'
                     }`}
                   >
                     <div>
@@ -335,7 +335,7 @@ export default function AgentSwarmPage() {
                             status === 'COMPLETE'
                               ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                               : status === 'ANALYSING'
-                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                               : 'bg-white/[0.05] text-slate-500 border-white/[0.08]'
                           }`}
                         >
@@ -395,7 +395,11 @@ export default function AgentSwarmPage() {
               </div>
             </div>
 
-            <span className="text-xs font-mono px-3 py-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
+            <span className="text-xs font-mono px-3.5 py-1.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/40 font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.2)] animate-amber-breath">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+              </span>
               HUMAN DECISION REQUIRED
             </span>
           </div>

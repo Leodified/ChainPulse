@@ -127,7 +127,7 @@ html, body {
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -152,19 +152,96 @@ html, body {
 
 @keyframes signalTravel {
   0% {
-    stroke-dashoffset: 24;
+    stroke-dashoffset: 28;
   }
   100% {
     stroke-dashoffset: 0;
   }
 }
 
-@keyframes radarSweep {
-  from {
-    transform: rotate(0deg);
+@keyframes signalTravelFast {
+  0% {
+    stroke-dashoffset: 28;
   }
-  to {
-    transform: rotate(360deg);
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
+  }
+}
+
+@keyframes coralBreath {
+  0%, 100% {
+    border-color: rgba(244, 63, 94, 0.35);
+    box-shadow: 0 0 15px -3px rgba(244, 63, 94, 0.15);
+  }
+  50% {
+    border-color: rgba(244, 63, 94, 0.7);
+    box-shadow: 0 0 25px 0px rgba(244, 63, 94, 0.3);
+  }
+}
+
+@keyframes amberBreath {
+  0%, 100% {
+    border-color: rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 14px -3px rgba(245, 158, 11, 0.15);
+  }
+  50% {
+    border-color: rgba(245, 158, 11, 0.65);
+    box-shadow: 0 0 22px 0px rgba(245, 158, 11, 0.28);
+  }
+}
+
+@keyframes microScan {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes rippleWave {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes attentionPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+}
+
+@keyframes subtleFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
   }
 }
 
@@ -173,7 +250,7 @@ html, body {
 }
 
 .animate-page-enter {
-  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .animate-beacon {
@@ -182,7 +259,55 @@ html, body {
 
 .animate-signal-flow {
   stroke-dasharray: 6 6;
-  animation: signalTravel 1.2s linear infinite;
+  animation: signalTravel 1.4s linear infinite;
+}
+
+.animate-signal-flow-fast {
+  stroke-dasharray: 6 6;
+  animation: signalTravelFast 0.8s linear infinite;
+}
+
+.animate-heartbeat-slow {
+  animation: heartbeat 2.6s ease-in-out infinite;
+}
+
+.animate-coral-breath {
+  animation: coralBreath 3s ease-in-out infinite;
+}
+
+.animate-amber-breath {
+  animation: amberBreath 3.2s ease-in-out infinite;
+}
+
+.animate-attention-pulse {
+  animation: attentionPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-subtle-float {
+  animation: subtleFloat 4s ease-in-out infinite;
+}
+
+/* Moving micro-indicator */
+.cp-scan-indicator {
+  position: relative;
+  overflow: hidden;
+}
+.cp-scan-indicator::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.35), transparent);
+  animation: microScan 2s ease-in-out infinite;
+}
+
+/* Interactive Card Elevation & Glow */
+.cp-card-interactive {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
+}
+.cp-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.6), 0 0 15px -2px rgba(56, 189, 248, 0.08);
 }
 
 /* Reduced motion preference */
@@ -194,8 +319,14 @@ html, body {
     scroll-behavior: auto !important;
   }
   .animate-signal-flow,
+  .animate-signal-flow-fast,
   .animate-beacon,
-  .animate-pulse {
+  .animate-pulse,
+  .animate-heartbeat-slow,
+  .animate-coral-breath,
+  .animate-amber-breath,
+  .animate-attention-pulse,
+  .cp-scan-indicator::after {
     animation: none !important;
   }
 }

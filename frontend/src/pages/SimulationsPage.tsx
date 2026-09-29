@@ -32,6 +32,7 @@ import {
 import { fetchScenarios } from '../services/simulations';
 import { MOCK_SCENARIOS } from '../data/mockData';
 import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
+import { AnimatedNumber } from '../components/ui/AnimatedNumber';
 import type { ScenarioDuration, Scenario } from '../types/simulations';
 
 const RISK_BADGE: Record<string, string> = {
@@ -239,12 +240,12 @@ export default function SimulationsPage() {
 
       {/* 4 Modeled State Telemetry Pills */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between">
+        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between cp-card-interactive">
           <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
             Min Inventory Level
           </span>
           <div className="text-2xl font-bold font-mono text-rose-400 mt-1">
-            {s.peakInventoryRisk}%
+            <AnimatedNumber value={s.peakInventoryRisk} suffix="%" durationMs={500} />
           </div>
           <span className="text-[11px] text-slate-500 mt-1">
             {activeDuration === '7D'
@@ -255,12 +256,12 @@ export default function SimulationsPage() {
           </span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between">
+        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between cp-card-interactive">
           <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
             Min Production Capacity
           </span>
           <div className="text-2xl font-bold font-mono text-amber-400 mt-1">
-            {s.minProductionCapacity}%
+            <AnimatedNumber value={s.minProductionCapacity} suffix="%" durationMs={500} />
           </div>
           <span className="text-[11px] text-slate-500 mt-1">
             {activeDuration === '7D'
@@ -271,7 +272,7 @@ export default function SimulationsPage() {
           </span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between">
+        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between cp-card-interactive">
           <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
             {activeDuration === '7D'
               ? 'Orders Due Within 7 Days'
@@ -280,7 +281,7 @@ export default function SimulationsPage() {
               : 'Orders in 60-Day Unmitigated Backlog'}
           </span>
           <div className="text-2xl font-bold font-mono text-rose-400 mt-1">
-            {s.totalOrdersAtRisk}
+            <AnimatedNumber value={s.totalOrdersAtRisk} durationMs={500} />
           </div>
           <span className="text-[11px] text-slate-500 mt-1">
             {activeDuration === '7D'
@@ -291,14 +292,14 @@ export default function SimulationsPage() {
           </span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between">
+        <div className="p-4 rounded-xl bg-[#080d19] border border-white/[0.06] flex flex-col justify-between cp-card-interactive">
           <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
             {activeDuration === '60D'
               ? 'Residual Financial Exposure'
               : 'Financial Exposure (Horizon)'}
           </span>
           <div className="text-2xl font-bold font-mono text-amber-400 mt-1">
-            ${(s.totalFinancialExposureUSD / 1e6).toFixed(1)}M
+            <AnimatedNumber value={+(s.totalFinancialExposureUSD / 1e6).toFixed(1)} prefix="$" suffix="M" decimals={1} durationMs={500} />
           </div>
           <span className="text-[11px] text-slate-500 mt-1">
             {activeDuration === '7D'

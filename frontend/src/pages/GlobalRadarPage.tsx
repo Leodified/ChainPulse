@@ -213,9 +213,23 @@ export default function GlobalRadarPage() {
         }).addTo(markersLayer);
       }
 
+      // Animated radar beacon for active high/critical disruptions
+      if (d.status === 'ACTIVE' && (d.severity === 'CRITICAL' || d.severity === 'HIGH')) {
+        const pulseIcon = L.divIcon({
+          className: '!bg-transparent !border-0',
+          html: `<div class="relative flex items-center justify-center w-8 h-8 pointer-events-none">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style="background-color: ${color}"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 border-2 border-white shadow-[0_0_12px_${color}]" style="background-color: ${color}"></span>
+          </div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+        L.marker([d.location.lat, d.location.lng], { icon: pulseIcon, interactive: false }).addTo(markersLayer);
+      }
+
       // Center marker with severity ring
       const circle = L.circleMarker([d.location.lat, d.location.lng], {
-        radius: isSelected ? 13 : 9,
+        radius: isSelected ? 14 : 9,
         fillColor: color,
         color: '#ffffff',
         weight: isSelected ? 2.5 : 1.5,

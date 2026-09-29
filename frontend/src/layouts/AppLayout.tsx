@@ -51,11 +51,12 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Menu size={18} />
             </button>
 
-            <span className="hidden sm:inline text-[10px] font-mono tracking-widest text-slate-400 uppercase font-semibold">
+            <span className="hidden sm:flex items-center gap-1.5 text-[10px] font-mono tracking-widest text-slate-400 uppercase font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
               COMMAND MATRIX
             </span>
             <span className="hidden sm:inline h-3 w-px bg-white/10" />
-            <div className="flex items-center gap-1.5 text-xs text-rose-300 bg-rose-500/10 border border-rose-500/20 px-2.5 py-0.5 rounded-full truncate max-w-[200px] sm:max-w-none">
+            <div className="flex items-center gap-1.5 text-xs text-rose-300 bg-rose-500/10 border border-rose-500/20 px-2.5 py-0.5 rounded-full truncate max-w-[200px] sm:max-w-none shadow-[0_0_10px_rgba(244,63,94,0.15)]">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping shrink-0" />
               <span className="font-mono text-[11px] font-medium truncate">DISR-SG-2026-001: Singapore Port</span>
             </div>
