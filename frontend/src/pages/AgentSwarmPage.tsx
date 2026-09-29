@@ -349,6 +349,32 @@ export default function AgentSwarmPage() {
             </div>
           </div>
 
+          {/* Audit Verification Checklist */}
+          <div className="p-3.5 rounded-xl bg-[#060b17] border border-white/[0.08] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
+            <div className="flex items-center gap-2">
+              <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+              <span className="text-slate-300">Swarm Cross-Validation (6/6)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+              <span className="text-slate-300">Exposure Bound ($28.3M max)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+              <span className="text-slate-300">Route Candidate (Air Bridge)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                rerouteState === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400 animate-pulse'
+              }`}>
+                {rerouteState === 'ACTIVE' ? '✓' : '!'}
+              </span>
+              <span className={rerouteState === 'ACTIVE' ? 'text-slate-300' : 'text-amber-300 font-bold'}>
+                {rerouteState === 'ACTIVE' ? 'Human Gate Sealed' : 'Human Approval Required'}
+              </span>
+            </div>
+          </div>
+
           {/* Decision Payoff CTA */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
             <span className="text-xs font-mono text-slate-400">

@@ -24,7 +24,7 @@ import { ProgressBar } from '../components/ui/ProgressBar';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
 import { AnimatedNumber } from '../components/ui/AnimatedNumber';
-import { HelpCircle, ShieldCheck, Dna } from 'lucide-react';
+import { HelpCircle, ShieldCheck } from 'lucide-react';
 import { StatusBeacon, LiveTelemetryBadge, DataCascade, SignalStream } from '../components/motion';
 import { ImpactCascadeGraph } from '../components/impact/ImpactCascadeGraph';
 import { traceImpact } from '../services/impact';
@@ -52,99 +52,6 @@ const TRACE_NODE_COLORS: Record<string, string> = {
 
 type TabId = 'operational' | 'financial' | 'sustainability' | 'orders';
 
-interface DnaLayer {
-  id: string;
-  name: string;
-  level: string;
-  metric: string;
-  evidence: string;
-  source: string;
-  formula: string;
-  tab: TabId;
-}
-
-const IMPACT_DNA_LAYERS: DnaLayer[] = [
-  {
-    id: 'DISRUPTION',
-    name: '01. DISRUPTION',
-    level: 'Singapore MPA Berth Congestion',
-    metric: '-65% Throughput',
-    evidence: 'Typhoon Haikui aftermath at Tanjong Pagar Terminal. Container clearance reduced by 65%. 847 vessels anchored in queue.',
-    source: 'MPA Singapore & Lloyds List AIS Telemetry',
-    formula: 'Capacity Loss = Nominal 100% - 35% Operating Rate = -65%',
-    tab: 'operational',
-  },
-  {
-    id: 'LOGISTICS',
-    name: '02. LOGISTICS',
-    level: 'Malacca Strait Sea Lane',
-    metric: '+12d Transit Delay',
-    evidence: 'Transshipment vessels experiencing 8-12 day berth queues. Feeder routes to Penang and Shenzhen delayed.',
-    source: 'AIS Vessel Tracking & Port Klang Marine Feeder Advisories',
-    formula: 'Transit Delay = Current Berth Wait (10.2d) + Rerouting Delta (1.8d) = 12.0 Days',
-    tab: 'operational',
-  },
-  {
-    id: 'SUPPLIER',
-    name: '03. SUPPLIER',
-    level: '4 Suppliers Exposed',
-    metric: 'Penang & TW Chips',
-    evidence: 'Penang Electronics (MY) and Taiwan Semiconductor components trapped at wharf. Outbound fulfillment paralyzed.',
-    source: 'SAP S/4HANA Vendor Dispatch Feeds (EKKO/EKPO)',
-    formula: 'Affected Suppliers Count = 4 (Tier 1 & Tier 2)',
-    tab: 'operational',
-  },
-  {
-    id: 'MATERIAL',
-    name: '04. MATERIAL',
-    level: '7 Critical BOM Types',
-    metric: 'Runway: 5.2 Days',
-    evidence: 'PCB Assemblies and Logic Chips safety stock depleting. Stockout threshold reached on Day 7.',
-    source: 'SAP Material Management (MARD / MARC Inventory Tables)',
-    formula: 'Buffer Runway = Current Stock (1,450 units) / Daily Burn Rate (280 units/day) = 5.2 Days',
-    tab: 'operational',
-  },
-  {
-    id: 'PRODUCTION',
-    name: '05. PRODUCTION',
-    level: 'Frankfurt Assembly Hub',
-    metric: '70% Throttle Mode',
-    evidence: 'Main plant assembly lines throttled to conserve remaining silicon buffer. 68 factories in network constrained.',
-    source: 'MES Factory Floor Production Schedules',
-    formula: 'Line Utilization = Nominal (100%) - Throttle (30%) = 70% Operating Capacity',
-    tab: 'operational',
-  },
-  {
-    id: 'CUSTOMER',
-    name: '06. CUSTOMER',
-    level: '22 Enterprise Orders',
-    metric: '$28.1M Book Value',
-    evidence: 'Delivery dates for Deutsche Telekom, Siemens AG, and Bosch Industrial compromised within the 30-day window.',
-    source: 'SAP Sales & Distribution Order Book (VBAK/VBAP)',
-    formula: 'Orders at Risk = Count(Committed Orders with Due Date < Stockout Recovery)',
-    tab: 'orders',
-  },
-  {
-    id: 'FINANCIAL',
-    name: '07. FINANCIAL',
-    level: 'Balance Sheet Exposure',
-    metric: '$28.3M Modeled Max',
-    evidence: '$28.1M committed order value at risk + $0.2M expediting and contract SLA breach penalties across 60 days.',
-    source: 'ChainPulse Deterministic Financial Exposure Engine',
-    formula: 'Max Exposure = ∑(Order Values) + Penalty Provisions ($0.2M) = $28.3M USD',
-    tab: 'financial',
-  },
-  {
-    id: 'ESG',
-    name: '08. ESG',
-    level: 'Scope-3 Carbon Variance',
-    metric: '+2% to +340% CO2',
-    evidence: 'Air freight bridge (Strategy B) recovers supply in 8 days but generates +340% CO2 emissions. Strategy A adds +12% CO2.',
-    source: 'GHG Protocol Freight Emission Factors',
-    formula: 'Air Carbon (500g/ton-km) vs Sea Carbon (15g/ton-km) = +340% Scope-3 Net Increase',
-    tab: 'sustainability',
-  },
-];
 
 export default function ImpactAnalysisPage() {
   const { disruptionId } = useParams<{ disruptionId?: string }>();
@@ -154,7 +61,6 @@ export default function ImpactAnalysisPage() {
   const [traced, setTraced] = useState(false);
   const [visibleNodes, setVisibleNodes] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<TabId>('operational');
-  const [selectedDnaIndex, setSelectedDnaIndex] = useState<number>(0);
   const [whyDetails, setWhyDetails] = useState<WhyDetails | null>(null);
   const [whyModalOpen, setWhyModalOpen] = useState(false);
 
@@ -228,33 +134,37 @@ export default function ImpactAnalysisPage() {
         </div>
       </div>
 
-      {/* Disruption Context Banner */}
-      <div className="rounded-2xl bg-[#080d19] border border-white/[0.08] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      {/* Incident + Key Exposure Strip */}
+      <div className="rounded-2xl bg-[#080d19] border border-white/[0.08] p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 flex-shrink-0">
             <Radio size={20} className="animate-pulse" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-bold">
-                HIGH SEVERITY
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">
+                CRITICAL DISRUPTION
               </span>
               <span className="text-sm font-bold text-slate-100">{disruption.title}</span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 font-mono mt-1">
               Detected: {format(new Date(disruption.detectedAt), 'MMM d, yyyy HH:mm')} · Source: Maritime Port Authority Singapore & Lloyds List AIS
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-mono">
-          <div className="text-right">
-            <span className="text-slate-500 block text-[9px] uppercase">Throughput Impact</span>
-            <span className="text-rose-400 font-bold">-65% Capacity</span>
+        <div className="flex items-center gap-4 text-xs font-mono flex-wrap lg:flex-nowrap border-t lg:border-t-0 lg:border-l border-white/[0.06] pt-3 lg:pt-0 lg:pl-5">
+          <div className="text-left lg:text-right">
+            <span className="text-slate-500 block text-[9px] uppercase">Throughput Loss</span>
+            <span className="text-rose-400 font-bold">-65% (35% Cap)</span>
           </div>
-          <div className="text-right">
-            <span className="text-slate-500 block text-[9px] uppercase">Vessel Queue</span>
-            <span className="text-slate-200 font-bold">847 Vessels</span>
+          <div className="text-left lg:text-right">
+            <span className="text-slate-500 block text-[9px] uppercase">Queue Delay</span>
+            <span className="text-slate-200 font-bold">847 Vessels · 8–12d</span>
+          </div>
+          <div className="text-left lg:text-right bg-rose-500/10 px-3 py-1.5 rounded-xl border border-rose-500/20">
+            <span className="text-slate-400 block text-[9px] uppercase">Maximum Exposure</span>
+            <span className="text-rose-400 font-black text-sm">$28.3M USD</span>
           </div>
         </div>
       </div>
@@ -294,114 +204,6 @@ export default function ImpactAnalysisPage() {
         </div>
       </div>
 
-      {/* 🧬 IMPACT DNA: Vertical Causal Fingerprint */}
-      <div className="rounded-2xl bg-gradient-to-b from-[#091124] to-[#060a14] border border-cyan-500/25 p-5 shadow-[0_12px_40px_rgba(0,0,0,0.6)] space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-              <Dna size={16} />
-            </div>
-            <div>
-              <span className="text-[10px] font-mono tracking-widest text-cyan-400 uppercase font-bold">
-                IMPACT DNA · VERTICAL CAUSAL FINGERPRINT
-              </span>
-              <h3 className="text-sm font-bold text-white tracking-tight">
-                Traceable Chain of Evidence: Disruption ──► Financial & Scope-3 ESG Impact
-              </h3>
-            </div>
-          </div>
-          <span className="text-[11px] font-mono text-slate-400">
-            Click any layer to inspect deterministic derivation
-          </span>
-        </div>
-
-        {/* 8-Segment DNA Strand */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-          {IMPACT_DNA_LAYERS.map((layer, idx) => {
-            const isSelected = selectedDnaIndex === idx;
-            return (
-              <button
-                key={layer.id}
-                onClick={() => {
-                  setSelectedDnaIndex(idx);
-                  setActiveTab(layer.tab);
-                }}
-                className={`p-3 rounded-xl border text-left transition-all relative flex flex-col justify-between min-h-[92px] ${
-                  isSelected
-                    ? 'bg-cyan-500/15 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.25)] -translate-y-0.5'
-                    : 'bg-[#080e1d] border-white/[0.06] text-slate-400 hover:border-white/15 hover:bg-[#0c1428]'
-                }`}
-              >
-                <div>
-                  <span className="text-[9px] font-mono font-bold tracking-wider uppercase block text-cyan-400">
-                    {layer.name}
-                  </span>
-                  <div className="text-[11px] font-bold text-slate-200 mt-1 leading-tight line-clamp-2">
-                    {layer.level}
-                  </div>
-                </div>
-                <div className="mt-2 pt-1 border-t border-white/5 flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-semibold text-amber-300">
-                    {layer.metric}
-                  </span>
-                  {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Active DNA Layer Provenance Evidence Box */}
-        {IMPACT_DNA_LAYERS[selectedDnaIndex] && (
-          <div className="p-4 rounded-xl bg-[#070d1a] border border-cyan-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold">
-                  {IMPACT_DNA_LAYERS[selectedDnaIndex].name} EVIDENCE
-                </span>
-                <span className="text-slate-600">|</span>
-                <span className="text-xs font-bold text-white font-mono">
-                  {IMPACT_DNA_LAYERS[selectedDnaIndex].formula}
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                {IMPACT_DNA_LAYERS[selectedDnaIndex].evidence}
-              </p>
-              <div className="text-[10px] font-mono text-slate-500 pt-0.5">
-                Verified Source: <span className="text-slate-300">{IMPACT_DNA_LAYERS[selectedDnaIndex].source}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => {
-                  const l = IMPACT_DNA_LAYERS[selectedDnaIndex];
-                  setWhyDetails({
-                    title: `Causal Fingerprint: ${l.name}`,
-                    metric: l.metric,
-                    formula: l.formula,
-                    explanation: l.evidence,
-                    parameters: [
-                      { label: 'DNA Layer', value: l.name },
-                      { label: 'Impacted Scope', value: l.level },
-                      { label: 'Associated View', value: l.tab.toUpperCase() },
-                    ],
-                    sources: [
-                      { name: l.source, type: 'ERP', verified: true },
-                      { name: 'ChainPulse Deterministic Engine', type: 'SCENARIO_ENGINE', verified: true },
-                    ],
-                  });
-                  setWhyModalOpen(true);
-                }}
-                className="px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-mono font-medium transition-colors flex items-center gap-1.5"
-              >
-                <HelpCircle size={12} />
-                <span>EXPLAIN CALCULATION</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* Visual Causal Investigation Breadcrumb */}
       <div className="p-3 rounded-xl bg-[#080d19] border border-white/[0.06] flex items-center justify-between overflow-x-auto text-xs font-mono">

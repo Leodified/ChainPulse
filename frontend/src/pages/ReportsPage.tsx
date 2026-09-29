@@ -102,17 +102,11 @@ export default function ReportsPage() {
           </button>
           <button
             onClick={() => window.print()}
-            className="px-3 py-2 rounded-xl bg-[#080d19] border border-white/[0.08] hover:border-white/20 text-xs font-mono text-slate-300 flex items-center gap-2 transition-all cursor-pointer"
-          >
-            <Printer size={13} />
-            <span>Print</span>
-          </button>
-          <button
-            onClick={() => alert('Executive Brief PDF generation triggered for Jury Dossier.')}
             className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_16px_rgba(56,189,248,0.3)] cursor-pointer"
+            title="Open browser print and PDF export dialog"
           >
-            <Download size={13} />
-            <span>Export PDF Dossier</span>
+            <Printer size={14} />
+            <span>EXPORT / PRINT DOSSIER</span>
           </button>
         </div>
       </div>

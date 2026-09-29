@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import GlobalRadarGlobe from '../components/maps/GlobalRadarGlobe';
+import worldLandData from '../data/world-land-110m.json';
 import { fetchDisruptions } from '../services/disruptions';
 import { MOCK_DISRUPTIONS } from '../data/mockData';
 import type { DisruptionEvent } from '../types/disruptions';
@@ -56,7 +57,7 @@ const MARITIME_ROUTES: Array<{
 const SUPPLY_FACILITIES: Array<{
   id: string;
   name: string;
-  type: 'supplier' | 'factory' | 'alternate';
+  type: 'supplier' | 'factory' | 'alternate' | 'hub';
   coords: [number, number];
   affected: boolean;
   role: string;
@@ -66,7 +67,8 @@ const SUPPLY_FACILITIES: Array<{
   { id: 'TW-CHIPS-01', name: 'Taiwan Semiconductor', type: 'supplier', coords: [25.0330, 121.5654], affected: true, role: 'Tier 2 Logic Chips' },
   { id: 'JP-PRECISION-01', name: 'Osaka Precision Parts', type: 'supplier', coords: [34.6937, 135.5023], affected: false, role: 'Tier 1 Precision Connectors' },
   { id: 'FAC-FRA-01', name: 'Frankfurt Manufacturing Hub', type: 'factory', coords: [50.1109, 8.6821], affected: true, role: 'Main Assembly (68 Plants)' },
-  { id: 'IN-ALTERNATE-01', name: 'Bangalore Alt Partner', type: 'alternate', coords: [12.9716, 77.5946], affected: false, role: 'Strategy A Alternate Hub' },
+  { id: 'NL-ROTTERDAM-01', name: 'Rotterdam Port Hub', type: 'hub', coords: [51.9244, 4.4777], affected: false, role: 'European Maritime Gateway' },
+  { id: 'IN-ALTERNATE-01', name: 'Bangalore Alt Partner', type: 'alternate', coords: [12.9716, 77.5946], affected: false, role: 'Emergency Air Bridge Corridor' },
 ];
 
 export default function GlobalRadarPage() {
@@ -83,7 +85,6 @@ export default function GlobalRadarPage() {
   const [showCorridors, setShowCorridors] = useState(true);
   const [showFacilities, setShowFacilities] = useState(true);
   const [showRadii, setShowRadii] = useState(true);
-  const [tileError, setTileError] = useState(false);
   const [viewMode, setViewMode] = useState<'3D_GLOBE' | '2D_TACTICAL'>('3D_GLOBE');
   const navigate = useNavigate();
 
@@ -99,23 +100,36 @@ export default function GlobalRadarPage() {
 
     if (!mapInstanceRef.current) {
       const map = L.map(mapRef.current, {
-        center: [15, 105],
+        center: [18, 95],
         zoom: 3.2,
         zoomControl: false,
         attributionControl: false,
       });
       mapInstanceRef.current = map;
 
+      // 1. Rock-solid offline GeoJSON continent base layer (guarantees the map is NEVER blank or grey)
+      const landLayer = L.geoJSON(worldLandData as any, {
+        style: {
+          fillColor: '#0b1324',
+          fillOpacity: 0.96,
+          color: '#1d3152',
+          weight: 0.8,
+        },
+      });
+      landLayer.addTo(map);
+
+      // 2. Optional online canvas tiles with silent error tolerance
       const tileLayer = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-        { maxZoom: 16 }
+        { maxZoom: 16, opacity: 0.65 }
       );
       tileLayer.on('tileerror', () => {
-        // Silently tolerate network drops without console errors
+        // Silently tolerate network drops: local GeoJSON layer continues serving the basemap seamlessly
       });
       tileLayer.addTo(map);
 
       routesLayerRef.current = L.layerGroup().addTo(map);
+      facilitiesLayerRef.current = L.layerGroup().addTo(map);
       markersLayerRef.current = L.layerGroup().addTo(map);
 
       L.control.zoom({ position: 'topright' }).addTo(map);
@@ -147,41 +161,81 @@ export default function GlobalRadarPage() {
     };
   }, []);
 
-  // Render Routes and Markers
+  // Render Routes and Markers with semantic reroute sync
   useEffect(() => {
-    // Initialize facilities layer if needed
-    if (!facilitiesLayerRef.current && mapInstanceRef.current) {
-      facilitiesLayerRef.current = L.layerGroup().addTo(mapInstanceRef.current);
-    }
     const facilitiesLayer = facilitiesLayerRef.current;
     const routesLayer = routesLayerRef.current;
     const markersLayer = markersLayerRef.current;
-    if (!routesLayer || !markersLayer) return;
+    if (!routesLayer || !markersLayer || !facilitiesLayer) return;
 
     markersLayer.clearLayers();
     routesLayer.clearLayers();
-    if (facilitiesLayer) facilitiesLayer.clearLayers();
+    facilitiesLayer.clearLayers();
 
-    // 1. Draw maritime routes if enabled
+    const isRouteActive = rerouteState === 'ACTIVE';
+    const isRouteProposed = rerouteState === 'PROPOSED' || rerouteState === 'APPROVED';
+
+    // 1. Draw maritime and air routes
     if (showCorridors) {
       MARITIME_ROUTES.forEach((route) => {
         const isDisrupted = route.status === 'disrupted';
+        const isBangaloreAirBridge = route.name.includes('Bangalore');
+
+        let color = '#38bdf8';
+        let weight = 1.2;
+        let opacity = 0.35;
+        let dashArray: string | undefined = '3, 6';
+
+        if (isDisrupted) {
+          if (isRouteActive) {
+            // Disrupted path is bypassed
+            color = '#94a3b8';
+            weight = 1.5;
+            opacity = 0.25;
+            dashArray = '4, 8';
+          } else {
+            color = '#f43f5e';
+            weight = 2.5;
+            opacity = 0.85;
+            dashArray = '6, 8';
+          }
+        } else if (isBangaloreAirBridge) {
+          if (isRouteActive) {
+            color = '#10b981';
+            weight = 4.0;
+            opacity = 0.95;
+            dashArray = undefined;
+          } else if (isRouteProposed) {
+            color = '#f59e0b';
+            weight = 3.0;
+            opacity = 0.85;
+            dashArray = '6, 6';
+          }
+        }
+
         const polyline = L.polyline([route.from, route.to], {
-          color: isDisrupted ? '#f43f5e' : '#38bdf8',
-          weight: isDisrupted ? 2.5 : 1,
-          opacity: isDisrupted ? 0.85 : 0.25,
-          dashArray: isDisrupted ? '6, 8' : '3, 6',
+          color,
+          weight,
+          opacity,
+          dashArray,
         });
+
+        polyline.bindTooltip(
+          `<div class="font-mono text-xs p-1"><strong>${route.name}</strong><br/><span class="${isRouteActive && isBangaloreAirBridge ? 'text-emerald-400 font-bold' : isDisrupted ? 'text-rose-400' : 'text-slate-400'}">${isRouteActive && isBangaloreAirBridge ? '✓ ACTIVE AUTHORIZED CORRIDOR' : isDisrupted && isRouteActive ? 'BYPASSED CORRIDOR' : isDisrupted ? 'DISRUPTED / CONGESTED' : 'MONITORED SEA LANE'}</span></div>`,
+          { direction: 'top', className: 'bg-[#060a14] border border-white/20 text-white rounded' }
+        );
+
         polyline.addTo(routesLayer);
       });
     }
 
-    // 2. Draw supply chain facilities if enabled
-    if (showFacilities && facilitiesLayer) {
+    // 2. Draw supply chain facilities and regional badges
+    if (showFacilities) {
       SUPPLY_FACILITIES.forEach((fac) => {
         const isFactory = fac.type === 'factory';
         const isAlt = fac.type === 'alternate';
-        const color = fac.affected ? '#f59e0b' : isAlt ? '#10b981' : '#38bdf8';
+        const isBypassed = isRouteActive && fac.id.includes('SG');
+        const color = isAlt && isRouteActive ? '#10b981' : isAlt && isRouteProposed ? '#f59e0b' : fac.affected && !isBypassed ? '#f59e0b' : isAlt ? '#38bdf8' : fac.type === 'hub' ? '#a78bfa' : '#38bdf8';
 
         const marker = L.circleMarker(fac.coords, {
           radius: isFactory ? 9 : 7,
@@ -189,15 +243,24 @@ export default function GlobalRadarPage() {
           color: '#ffffff',
           weight: 1.5,
           opacity: 0.9,
-          fillOpacity: 0.8,
+          fillOpacity: 0.85,
         });
 
         marker.bindTooltip(
-          `<div class="font-mono text-xs p-1"><strong>${fac.name}</strong><br/><span class="text-slate-400">${fac.role}</span></div>`,
+          `<div class="font-mono text-xs p-1"><strong>${fac.name}</strong><br/><span class="text-slate-400">${fac.role}</span>${isAlt && isRouteActive ? '<br/><span class="text-emerald-400 font-bold">✓ Active Reroute Corridor</span>' : ''}</div>`,
           { direction: 'top', className: 'bg-[#060a14] border border-white/20 text-white rounded' }
         );
 
         marker.addTo(facilitiesLayer);
+
+        // Crisp city tactical tag
+        const tagIcon = L.divIcon({
+          className: '!bg-transparent !border-0',
+          html: `<div class="font-mono text-[9px] font-bold text-slate-300 bg-[#060c18]/85 px-1.5 py-0.5 rounded border border-white/10 whitespace-nowrap shadow-sm pointer-events-none">${fac.name.split(' ')[0]}</div>`,
+          iconSize: [60, 16],
+          iconAnchor: [30, -10],
+        });
+        L.marker(fac.coords, { icon: tagIcon, interactive: false }).addTo(facilitiesLayer);
       });
     }
 
@@ -253,7 +316,7 @@ export default function GlobalRadarPage() {
 
       circle.addTo(markersLayer);
     });
-  }, [disruptions, selectedEvent, showCorridors, showFacilities, showRadii]);
+  }, [disruptions, selectedEvent, showCorridors, showFacilities, showRadii, rerouteState]);
 
   function focusIncident(d: DisruptionEvent) {
     setSelectedEvent(d);

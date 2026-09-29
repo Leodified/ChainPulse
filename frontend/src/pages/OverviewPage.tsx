@@ -239,7 +239,7 @@ export default function OverviewPage() {
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1 flex flex-wrap items-center gap-3">
             Command Center
             <span className="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 flex items-center gap-1.5 shadow-[0_0_12px_rgba(244,63,94,0.15)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
               ● CRITICAL DISRUPTION DETECTED
             </span>
           </h1>
@@ -307,9 +307,8 @@ export default function OverviewPage() {
       {/* Disruption Alert Strip with Coral Breathing Glow */}
       <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950/40 via-[#0d172e] to-[#0a1226] border border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[0_0_35px_rgba(244,63,94,0.12)] animate-coral-breath">
         <div className="flex items-center gap-3.5">
-          <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 shrink-0 relative">
-            <span className="animate-ping absolute inset-0 rounded-xl bg-rose-500/30 opacity-75" />
-            <AlertTriangle size={22} className="relative z-10" />
+          <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 shrink-0">
+            <AlertTriangle size={22} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -318,10 +317,7 @@ export default function OverviewPage() {
                 ● CRITICAL
               </span>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold flex items-center gap-1.5">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
-                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                 PROPAGATING
               </span>
             </div>
