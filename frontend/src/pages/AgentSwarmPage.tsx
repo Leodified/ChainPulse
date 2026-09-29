@@ -21,6 +21,7 @@ import {
 import { clsx } from 'clsx';
 import { fetchAgentActivities } from '../services/agents';
 import { MOCK_AGENT_ACTIVITIES } from '../data/mockData';
+import { AgentSwarmCanvas } from '../components/agents/AgentSwarmCanvas';
 import type { AgentType, AgentActivity } from '../types/agents';
 
 type AgentStatusStage = 'WAITING' | 'ANALYSING' | 'COMPLETE';
@@ -192,186 +193,12 @@ export default function AgentSwarmPage() {
           </h1>
         </div>
 
-        {/* Swarm Sequence Controls */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={runSequentialOrchestration}
-            disabled={isSimulatingSequence}
-            className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_16px_rgba(56,189,248,0.3)]"
-          >
-            {isSimulatingSequence ? <Radio size={14} className="animate-spin" /> : <Play size={14} />}
-            <span>{isSimulatingSequence ? 'Orchestrating Agents...' : 'Run Swarm Sequence'}</span>
-          </button>
-          <div className="px-3 py-1.5 rounded-lg bg-[#090f1d] border border-white/[0.06] text-xs font-mono text-slate-400">
-            Runtime: <span className="text-sky-400 font-bold">14.2s Total</span>
-          </div>
-        </div>
       </div>
 
-      {/* CENTRAL LIVING MULTI-AGENT ORCHESTRATION STAGE */}
-      <div className="rounded-2xl bg-gradient-to-b from-[#090f1f] via-[#070b16] to-[#040711] border border-white/[0.08] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.6)] relative overflow-hidden">
-        <div className="absolute inset-0 cp-telemetry-grid opacity-25 pointer-events-none" />
-
-        <div className="relative z-10 space-y-6">
-          <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-            <span className="uppercase tracking-wider">CENTRAL ORCHESTRATION NETWORK & INFORMATION FLOW</span>
-            <span className="text-sky-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-              {isSimulatingSequence ? 'TRANSMITTING REASONING ARTIFACTS' : 'SWARM CONVERGED'}
-            </span>
-          </div>
-
-          {/* Central Hub & Satellite Agents Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-            {/* Central Orchestrator Node (col-span-4) */}
-            <div
-              onClick={() => setSelectedAgentType('ORCHESTRATOR')}
-              className={`lg:col-span-4 p-6 rounded-2xl cursor-pointer transition-all duration-300 border flex flex-col justify-between relative ${
-                selectedAgentType === 'ORCHESTRATOR'
-                  ? 'bg-sky-500/15 border-sky-400/80 shadow-[0_0_32px_rgba(56,189,248,0.25)] -translate-y-1'
-                  : 'bg-[#090f1e] border-sky-500/30 hover:border-sky-500/50'
-              }`}
-            >
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="p-3 rounded-xl bg-sky-500/20 border border-sky-500/40 text-sky-400">
-                    <Cpu size={24} />
-                  </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold">
-                    {agentStatuses.ORCHESTRATOR}
-                  </span>
-                </div>
-
-                <div className="mt-4">
-                  <span className="text-[10px] font-mono text-sky-400 uppercase tracking-widest font-semibold">
-                    EXECUTIVE HUB
-                  </span>
-                  <h3 className="text-base font-bold text-slate-100 mt-0.5">
-                    ChainPulse Orchestrator
-                  </h3>
-                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                    Coordinates specialized agents, evaluates multi-tier constraints, and synthesizes executive decision trade-offs for human authorization.
-                  </p>
-                </div>
-
-                {/* Explicit Telemetry Attributes */}
-                <div className="mt-4 space-y-2 text-[11px] font-mono border-t border-white/[0.06] pt-3">
-                  <div>
-                    <span className="text-slate-500 text-[10px] uppercase block">INPUT (Signals)</span>
-                    <span className="text-slate-300">5 Specialized Agent Artifacts & Constraint Matrices</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 text-[10px] uppercase block">OUTPUT (Findings)</span>
-                    <span className="text-sky-300 font-semibold">3-Way Strategy Trade-off Envelope (A, B, C)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-400">Swarm Confidence:</span>
-                <span className="text-emerald-400 font-bold">94% (HIGH)</span>
-              </div>
-            </div>
-
-            {/* 5 Satellite Specialized Agents (col-span-8) */}
-            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {SATELLITE_AGENTS.map((type, idx) => {
-                const meta = AGENT_META[type];
-                const status = agentStatuses[type];
-                const isSelected = selectedAgentType === type;
-
-                // Explicit fields per agent
-                const telemetry = (
-                  {
-                    EVENT: {
-                      input: 'AIS Vessel Tracking, Tanjong Pagar berth delay logs, MPA Singapore',
-                      output: 'Port throughput -65%, 847 vessels delayed, 8-12d queue',
-                      confidence: '94% (HIGH)',
-                    },
-                    RESEARCH: {
-                      input: 'Global shipping bills of lading, feeder schedules, port logs',
-                      output: '4 Tier-1/2 suppliers dependent on Singapore transshipment corridor',
-                      confidence: '96% (HIGH)',
-                    },
-                    IMPACT: {
-                      input: 'Multi-tier BOM, plant stock buffers, priority order delivery SLAs',
-                      output: '7 materials constrained, Frankfurt plant throttled (70% cap), 22 orders at risk',
-                      confidence: '91% (HIGH)',
-                    },
-                    FINANCE_ESG: {
-                      input: 'SAP ERP sales contracts, SLA forfeiture penalties, air freight CO2 factor',
-                      output: 'Max exposure $28.3M; Emergency Air Freight adds +340% Scope-3 emissions',
-                      confidence: '95% (HIGH)',
-                    },
-                    RECOVERY: {
-                      input: 'Alternate supplier DB (IN-01), spot air capacity, stock reallocation',
-                      output: '3 ranked recovery strategies with cost-speed-emissions trade-off matrices',
-                      confidence: '93% (HIGH)',
-                    },
-                  } as Record<string, { input: string; output: string; confidence: string }>
-                )[type] || {
-                  input: 'Enterprise data feed',
-                  output: 'Model evaluation',
-                  confidence: '90% (HIGH)',
-                };
-
-                return (
-                  <div
-                    key={type}
-                    onClick={() => setSelectedAgentType(type)}
-                    className={`p-3.5 rounded-xl cursor-pointer transition-all duration-300 border flex flex-col justify-between cp-card-interactive ${
-                      isSelected
-                        ? 'bg-white/[0.08] border-sky-400/80 shadow-[0_0_24px_rgba(56,189,248,0.25)] -translate-y-1 scale-[1.02]'
-                        : status === 'ANALYSING'
-                        ? 'bg-sky-500/15 border-sky-400/70 shadow-[0_0_20px_rgba(56,189,248,0.3)] animate-pulse'
-                        : 'bg-[#080d19] border-white/[0.06] hover:border-white/20'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className={`p-2 rounded-lg ${meta.ringColor}`}>{meta.icon}</div>
-                        <span
-                          className={`text-[9px] font-mono px-1.5 py-0.5 rounded border font-semibold ${
-                            status === 'COMPLETE'
-                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                              : status === 'ANALYSING'
-                              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                              : 'bg-white/[0.05] text-slate-500 border-white/[0.08]'
-                          }`}
-                        >
-                          STATUS: {status}
-                        </span>
-                      </div>
-
-                      <div className="mb-2">
-                        <span className="text-[9px] font-mono text-slate-500">STAGE 0{idx + 1}</span>
-                        <h4 className="text-xs font-bold text-slate-200 mt-0.5">{meta.label}</h4>
-                      </div>
-
-                      {/* Explicit Input & Output fields */}
-                      <div className="space-y-1.5 text-[10px] font-mono bg-[#0c1424]/60 p-2 rounded-lg border border-white/[0.03]">
-                        <div>
-                          <span className="text-slate-500 uppercase block text-[8px]">INPUT:</span>
-                          <span className="text-slate-400 line-clamp-1">{telemetry.input}</span>
-                        </div>
-                        <div>
-                          <span className="text-sky-400/80 uppercase block text-[8px]">OUTPUT:</span>
-                          <span className="text-slate-200 line-clamp-2">{telemetry.output}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-2.5 pt-2 border-t border-white/[0.04] text-[10px] font-mono flex items-center justify-between">
-                      <span className="text-slate-500">CONFIDENCE:</span>
-                      <span className="text-emerald-400 font-bold">{telemetry.confidence}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* LIVING MULTI-AGENT SWARM CANVAS (Orbital Physics & Packet Transmission) */}
+      <AgentSwarmCanvas
+        onOrchestratorConverged={() => setOrchestratorConverged(true)}
+      />
 
       {/* FINAL DECISION ROOM CONVERGENCE (Visual Payoff) */}
       {orchestratorConverged && (

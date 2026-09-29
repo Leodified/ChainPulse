@@ -8,6 +8,7 @@ import {
   Compass,
   Crosshair,
   ExternalLink,
+  Globe,
   Layers,
   Maximize2,
   Navigation,
@@ -15,6 +16,7 @@ import {
   Ship,
   X,
 } from 'lucide-react';
+import GlobalRadarGlobe from '../components/maps/GlobalRadarGlobe';
 import { fetchDisruptions } from '../services/disruptions';
 import { MOCK_DISRUPTIONS } from '../data/mockData';
 import type { DisruptionEvent } from '../types/disruptions';
@@ -80,6 +82,7 @@ export default function GlobalRadarPage() {
   const [showFacilities, setShowFacilities] = useState(true);
   const [showRadii, setShowRadii] = useState(true);
   const [tileError, setTileError] = useState(false);
+  const [viewMode, setViewMode] = useState<'3D_GLOBE' | '2D_TACTICAL'>('3D_GLOBE');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -262,7 +265,7 @@ export default function GlobalRadarPage() {
   return (
     <div className="p-6 h-[calc(100vh-var(--header-height))] flex flex-col space-y-4 max-w-[1800px] mx-auto">
       {/* Top Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono tracking-widest text-sky-400 uppercase font-semibold">
@@ -279,109 +282,169 @@ export default function GlobalRadarPage() {
           </h1>
         </div>
 
-        {/* Rapid Camera Quick-Picks */}
-        <div className="flex items-center gap-2 overflow-x-auto">
-          {disruptions.map((d) => {
-            const isSelected = selectedEvent?.id === d.id;
-            return (
-              <button
-                key={d.id}
-                onClick={() => focusIncident(d)}
-                className={`px-3 py-1.5 rounded-lg border text-xs font-mono flex items-center gap-2 transition-all ${
-                  isSelected
-                    ? 'bg-sky-500/15 border-sky-400 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.2)]'
-                    : 'bg-[#090f1d] border-white/[0.08] text-slate-400 hover:text-slate-200 hover:border-white/20'
-                }`}
-              >
-                <span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ backgroundColor: SEVERITY_COLORS[d.severity] }}
-                />
-                <span className="font-semibold">{d.location?.city || d.location?.country || 'Node'}</span>
-                <span className="text-[10px] text-slate-500">{d.severity}</span>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* View Mode Toggle: 3D Digital Globe vs 2D Tactical Map */}
+          <div className="flex items-center bg-[#070c18] p-1 rounded-xl border border-white/[0.08] shadow-inner">
+            <button
+              onClick={() => setViewMode('3D_GLOBE')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold flex items-center gap-1.5 transition-all ${
+                viewMode === '3D_GLOBE'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Globe size={13} className={viewMode === '3D_GLOBE' ? 'text-cyan-400' : 'text-slate-400'} />
+              <span>3D DIGITAL GLOBE</span>
+            </button>
+            <button
+              onClick={() => {
+                setViewMode('2D_TACTICAL');
+                setTimeout(() => {
+                  if (mapInstanceRef.current) {
+                    mapInstanceRef.current.invalidateSize();
+                  }
+                }, 50);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold flex items-center gap-1.5 transition-all ${
+                viewMode === '2D_TACTICAL'
+                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-[0_0_12px_rgba(56,189,248,0.25)]'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Layers size={13} className={viewMode === '2D_TACTICAL' ? 'text-sky-400' : 'text-slate-400'} />
+              <span>2D TACTICAL MAP</span>
+            </button>
+          </div>
+
+          {/* Rapid Camera Quick-Picks (active in 2D or quick selection) */}
+          <div className="flex items-center gap-2 overflow-x-auto">
+            {disruptions.map((d) => {
+              const isSelected = selectedEvent?.id === d.id;
+              return (
+                <button
+                  key={d.id}
+                  onClick={() => focusIncident(d)}
+                  className={`px-3 py-1.5 rounded-lg border text-xs font-mono flex items-center gap-2 transition-all ${
+                    isSelected
+                      ? 'bg-sky-500/15 border-sky-400 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.2)]'
+                      : 'bg-[#090f1d] border-white/[0.08] text-slate-400 hover:text-slate-200 hover:border-white/20'
+                  }`}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: SEVERITY_COLORS[d.severity] }}
+                  />
+                  <span className="font-semibold">{d.location?.city || d.location?.country || 'Node'}</span>
+                  <span className="text-[10px] text-slate-500">{d.severity}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Map Viewport & Intelligence Drawer */}
       <div className="flex-1 relative rounded-2xl overflow-hidden border border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.7)] bg-[#060a14]">
-        <div ref={mapRef} className="w-full h-full" />
-
-        {/* Map Layer Controls (Top-Right) */}
-        <div className="absolute top-4 left-4 z-[1000] flex items-center gap-2 bg-[#070c18]/90 backdrop-blur-md border border-white/[0.08] rounded-xl p-1.5 pointer-events-auto">
-          <div className="flex items-center gap-1.5 px-2 text-[10px] font-mono text-slate-400 uppercase tracking-wider border-r border-white/[0.08] mr-1">
-            <Layers size={13} className="text-cyan-400" />
-            <span>LAYERS</span>
-          </div>
-          <button
-            onClick={() => setShowCorridors(!showCorridors)}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors ${
-              showCorridors
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                : 'text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            Maritime Corridors
-          </button>
-          <button
-            onClick={() => setShowFacilities(!showFacilities)}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors ${
-              showFacilities
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                : 'text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            Supply Nodes
-          </button>
-          <button
-            onClick={() => setShowRadii(!showRadii)}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors ${
-              showRadii
-                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                : 'text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            Impact Radii
-          </button>
+        {/* 3D WebGL Globe Viewport */}
+        <div className={`w-full h-full ${viewMode === '3D_GLOBE' ? 'block' : 'hidden'}`}>
+          <GlobalRadarGlobe
+            onNodeSelect={(node) => {
+              const matched = disruptions.find(
+                (d) =>
+                  d.location?.city?.toLowerCase().includes(node.name.toLowerCase()) ||
+                  node.name.toLowerCase().includes(d.location?.city?.toLowerCase() || '') ||
+                  d.title.toLowerCase().includes(node.name.toLowerCase())
+              );
+              if (matched) {
+                setSelectedEvent(matched);
+              }
+            }}
+          />
         </div>
 
-        {/* Radar Overlay Reticle & Legend (Bottom-Left) */}
-        <div className="absolute bottom-5 left-5 z-[1000] bg-[#070c18]/90 backdrop-blur-md border border-white/[0.08] rounded-xl p-3 space-y-2 pointer-events-auto">
-          <div className="flex items-center justify-between gap-4 text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-            <div className="flex items-center gap-2">
-              <Radio size={12} className="text-sky-400 animate-pulse" />
-              <span>RADAR STATUS: ACTIVE AIS SWEEP</span>
-            </div>
-            <span className="text-[9px] text-emerald-400 font-semibold">VECTOR ENGINE OK</span>
-          </div>
-          <div className="flex items-center gap-3 text-xs font-mono pt-1 border-t border-white/[0.06] flex-wrap">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-500" />
-              <span className="text-slate-400 text-[11px]">Critical</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-orange-500" />
-              <span className="text-slate-400 text-[11px]">High</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-yellow-500" />
-              <span className="text-slate-400 text-[11px]">Moderate</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-sky-400" />
-              <span className="text-slate-400 text-[11px]">Information</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-slate-400 text-[11px]">Recovered</span>
-            </div>
-          </div>
-        </div>
+        {/* 2D Leaflet Tactical Map Viewport */}
+        <div
+          ref={mapRef}
+          className={`w-full h-full ${viewMode === '2D_TACTICAL' ? 'block' : 'hidden'}`}
+        />
 
-        {/* Slide-in Intelligence HUD Drawer (Right Side) */}
-        {selectedEvent && (
+        {/* 2D Map Layer Controls (Top-Left) */}
+        {viewMode === '2D_TACTICAL' && (
+          <div className="absolute top-4 left-4 z-[1000] flex items-center gap-2 bg-[#070c18]/90 backdrop-blur-md border border-white/[0.08] rounded-xl p-1.5 pointer-events-auto">
+            <div className="flex items-center gap-1.5 px-2 text-[10px] font-mono text-slate-400 uppercase tracking-wider border-r border-white/[0.08] mr-1">
+              <Layers size={13} className="text-cyan-400" />
+              <span>LAYERS</span>
+            </div>
+            <button
+              onClick={() => setShowCorridors(!showCorridors)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors ${
+                showCorridors
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Maritime Corridors
+            </button>
+            <button
+              onClick={() => setShowFacilities(!showFacilities)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors ${
+                showFacilities
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Supply Nodes
+            </button>
+            <button
+              onClick={() => setShowRadii(!showRadii)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors ${
+                showRadii
+                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Impact Radii
+            </button>
+          </div>
+        )}
+
+        {/* Radar Overlay Reticle & Legend (Bottom-Left) - 2D Tactical Only */}
+        {viewMode === '2D_TACTICAL' && (
+          <div className="absolute bottom-5 left-5 z-[1000] bg-[#070c18]/90 backdrop-blur-md border border-white/[0.08] rounded-xl p-3 space-y-2 pointer-events-auto">
+            <div className="flex items-center justify-between gap-4 text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                <Radio size={12} className="text-sky-400 animate-pulse" />
+                <span>RADAR STATUS: ACTIVE AIS SWEEP</span>
+              </div>
+              <span className="text-[9px] text-emerald-400 font-semibold">VECTOR ENGINE OK</span>
+            </div>
+            <div className="flex items-center gap-3 text-xs font-mono pt-1 border-t border-white/[0.06] flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-rose-500" />
+                <span className="text-slate-400 text-[11px]">Critical</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-orange-500" />
+                <span className="text-slate-400 text-[11px]">High</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                <span className="text-slate-400 text-[11px]">Moderate</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-sky-400" />
+                <span className="text-slate-400 text-[11px]">Information</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="text-slate-400 text-[11px]">Recovered</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Slide-in Intelligence HUD Drawer (Right Side) - 2D Tactical Only */}
+        {viewMode === '2D_TACTICAL' && selectedEvent && (
           <div className="absolute top-4 right-4 bottom-4 w-96 max-w-[calc(100vw-32px)] z-[1000] bg-[#070c1a]/95 backdrop-blur-xl border border-white/[0.1] rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.8)] p-5 flex flex-col justify-between overflow-y-auto animate-fade-in pointer-events-auto">
             <div className="space-y-4">
               {/* Drawer Header */}

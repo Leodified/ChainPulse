@@ -24,6 +24,7 @@ import { MOCK_OVERVIEW } from '../data/mockData';
 import { WhyModal, WhyDetails } from '../components/ui/WhyModal';
 import { ExecutiveBriefModal } from '../components/ui/ExecutiveBriefModal';
 import { AnimatedNumber } from '../components/ui/AnimatedNumber';
+import { LiveSupplyNetworkTwin } from '../components/digital-twin/LiveSupplyNetworkTwin';
 import { HelpCircle, FileText, CheckCircle2 } from 'lucide-react';
 
 interface NodeTelemetry {
@@ -355,184 +356,12 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      {/* HERO STAGE: LIVE SUPPLY NETWORK (Subtle Breathing Digital Twin) */}
-      <div className="relative rounded-2xl bg-gradient-to-b from-[#090f1f] via-[#070b16] to-[#040711] border border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden p-6 md:p-8">
-        <div className="absolute inset-0 cp-telemetry-grid opacity-30 pointer-events-none" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-rose-500/[0.03] rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-sky-500/[0.03] rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col gap-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
-              </span>
-              <span className="text-xs font-mono uppercase tracking-wider text-rose-300 font-semibold">
-                LIVE SUPPLY NETWORK · DIGITAL TWIN
-              </span>
-              <span className="hidden md:inline text-xs font-mono text-slate-500">|</span>
-              <span className="hidden md:inline text-xs font-mono text-slate-400">
-                Events ──► Singapore ──► Suppliers ──► Materials ──► Factories ──► Products ──► Clients
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {isolatedNodeId && (
-                <button
-                  onClick={() => setIsolatedNodeId(null)}
-                  className="px-2.5 py-1 rounded-lg bg-sky-500/20 border border-sky-400/40 text-sky-300 text-[11px] font-mono flex items-center gap-1.5 hover:bg-sky-500/30 transition-colors"
-                >
-                  <RotateCcw size={11} />
-                  <span>RESET ISOLATION</span>
-                </button>
-              )}
-              <button
-                onClick={triggerPropagationWave}
-                disabled={isManualPulsing}
-                className="px-3 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-mono text-sky-300 flex items-center gap-1.5 transition-colors disabled:opacity-50"
-                title="Replay causal propagation wave across all 7 tiers"
-              >
-                <Radio size={12} className={isManualPulsing ? 'animate-spin text-rose-400' : 'animate-pulse text-sky-400'} />
-                <span>{isManualPulsing ? 'PROPAGATING...' : 'TRIGGER PROPAGATION PULSE'}</span>
-              </button>
-              <div className="text-xs font-mono text-slate-400 hidden xl:flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-                <span>VECTOR STREAM ACTIVE</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Multi-Tier Propagation Chain */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 py-2">
-            {CAUSAL_CHAIN.map((node, index) => {
-              const isSelected = selectedNode.id === node.id;
-              const isHovered = hoveredNodeId === node.id;
-              const isPulsing = pulseStep === index;
-              const isIsolated = isolatedNodeId === node.id;
-              const hasIsolationActive = isolatedNodeId !== null;
-
-              // Calculate opacity based on focus/isolation
-              let cardOpacity = 'opacity-100';
-              if (hasIsolationActive) {
-                cardOpacity = isIsolated ? 'opacity-100 ring-2 ring-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.3)]' : 'opacity-25 blur-[0.5px]';
-              } else if (hoveredNodeId !== null && !isHovered && !isSelected) {
-                cardOpacity = 'opacity-40';
-              }
-
-              return (
-                <div
-                  key={node.id}
-                  onClick={() => {
-                    setSelectedNode(node);
-                    setIsolatedNodeId(isolatedNodeId === node.id ? null : node.id);
-                  }}
-                  onMouseEnter={() => setHoveredNodeId(node.id)}
-                  onMouseLeave={() => setHoveredNodeId(null)}
-                  className={`relative flex flex-col justify-between p-3.5 rounded-xl cursor-pointer transition-all duration-300 border cp-card-interactive ${cardOpacity} ${
-                    isIsolated
-                      ? 'bg-sky-500/15 border-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.25)] scale-[1.03]'
-                      : isSelected
-                      ? 'bg-sky-500/10 border-sky-400/50 shadow-[0_0_20px_rgba(56,189,248,0.15)] -translate-y-1'
-                      : isHovered
-                      ? 'bg-white/[0.08] border-white/30 scale-[1.03] shadow-[0_8px_25px_rgba(0,0,0,0.5)]'
-                      : isPulsing
-                      ? 'bg-white/[0.06] border-white/30 -translate-y-0.5 shadow-[0_0_15px_rgba(255,255,255,0.1)]'
-                      : 'bg-[#0b1222]/80 border-white/[0.06] hover:border-white/20 hover:bg-[#0e172a]'
-                  }`}
-                >
-                  {/* Energy propagation flash */}
-                  {isPulsing && (
-                    <span className="absolute inset-0 rounded-xl bg-sky-400/10 animate-pulse pointer-events-none" />
-                  )}
-
-                  <div className="flex items-center justify-between gap-1 mb-2">
-                    <span className="text-[9px] font-mono text-slate-400 font-semibold tracking-wider">
-                      {node.stage}
-                    </span>
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        node.status === 'critical'
-                          ? 'bg-rose-400 shadow-[0_0_8px_#f43f5e]'
-                          : node.status === 'warning'
-                          ? 'bg-amber-400 shadow-[0_0_8px_#f59e0b]'
-                          : 'bg-emerald-400'
-                      }`}
-                    />
-                  </div>
-
-                  <div className="min-h-[46px]">
-                    <div className="text-xs font-bold text-slate-100 tracking-tight truncate flex items-center justify-between">
-                      <span>{node.title}</span>
-                    </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5 line-clamp-2 leading-tight">
-                      {node.detail}
-                    </div>
-                  </div>
-
-                  <div className="mt-3 pt-2 border-t border-white/[0.05] flex items-center justify-between">
-                    <span className="text-[9px] font-mono text-slate-500 uppercase">Impact</span>
-                    <span
-                      className={`text-[10px] font-mono font-bold ${
-                        node.status === 'critical' ? 'text-rose-300' : 'text-amber-300'
-                      }`}
-                    >
-                      {node.metric}
-                    </span>
-                  </div>
-
-                  {index < CAUSAL_CHAIN.length - 1 && (
-                    <div className="hidden lg:flex absolute -right-2 top-1/2 -translate-y-1/2 z-20 w-4 h-4 rounded-full bg-[#080d19] border border-white/10 items-center justify-center shadow-[0_0_8px_rgba(0,0,0,0.8)]">
-                      <ChevronRight size={10} className={isPulsing ? 'text-sky-300' : 'text-slate-400'} />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Selected Node Telemetry HUD & Primary Actions */}
-          <div className="mt-2 p-4 rounded-xl bg-[#090f1d] border border-white/[0.07] flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 flex-shrink-0">
-                <Activity size={18} className="animate-pulse" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-semibold text-sky-300">{selectedNode.stage} DETAIL:</span>
-                  <span className="text-sm font-bold text-slate-100">{selectedNode.title}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/[0.05] text-slate-300 border border-white/10">
-                    Impact: {selectedNode.metric}
-                  </span>
-                </div>
-                <div className="text-xs text-slate-400 mt-0.5">{selectedNode.detail}</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <button
-                onClick={() => navigate('/impact/DISR-SG-2026-001')}
-                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-300 text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 group hover:scale-[1.02]"
-              >
-                <span>Trace Full Impact</span>
-                <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
-              </button>
-              <button
-                onClick={() => navigate('/simulations')}
-                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-slate-200 text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 hover:scale-[1.02]"
-              >
-                <span>Simulate Future</span>
-              </button>
-              <button
-                onClick={() => navigate('/recovery')}
-                className="flex-1 md:flex-none px-4 py-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30 text-emerald-300 text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 hover:scale-[1.02]"
-              >
-                <span>Strategic Recovery</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* HERO STAGE: LIVE SUPPLY NETWORK (Living Animated Digital Twin) */}
+      <LiveSupplyNetworkTwin
+        onTraceImpact={() => navigate('/impact/DISR-SG-2026-001')}
+        onSimulate={() => navigate('/simulations')}
+        onStrategicRecovery={() => navigate('/recovery')}
+      />
 
       {/* Two-Column Telemetry Stream: Real-time Maritime & Disruption Feed + Agent Attention Matrix */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
