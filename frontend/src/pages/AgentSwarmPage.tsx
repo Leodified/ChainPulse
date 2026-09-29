@@ -1,0 +1,550 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  ArrowRight,
+  Bot,
+  CheckCircle,
+  Clock,
+  Cpu,
+  FileText,
+  Network,
+  Play,
+  Radio,
+  RotateCcw,
+  Scale,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  TrendingDown,
+  Zap,
+} from 'lucide-react';
+import { clsx } from 'clsx';
+import { fetchAgentActivities } from '../services/agents';
+import { MOCK_AGENT_ACTIVITIES } from '../data/mockData';
+import type { AgentType, AgentActivity } from '../types/agents';
+
+type AgentStatusStage = 'WAITING' | 'ANALYSING' | 'COMPLETE';
+
+const AGENT_META: Record<
+  AgentType,
+  { label: string; icon: React.ReactNode; color: string; ringColor: string; summary: string }
+> = {
+  ORCHESTRATOR: {
+    label: 'ChainPulse Orchestrator',
+    icon: <Cpu size={20} className="text-sky-400" />,
+    color: '#38bdf8',
+    ringColor: 'border-sky-500/40 bg-sky-500/10',
+    summary: 'Synthesizes multi-agent trade-offs into executive decision envelope.',
+  },
+  EVENT: {
+    label: 'Event Intelligence',
+    icon: <Radio size={18} className="text-rose-400" />,
+    color: '#f43f5e',
+    ringColor: 'border-rose-500/30 bg-rose-500/10',
+    summary: 'High-severity port congestion detected from MPA & AIS tracking.',
+  },
+  RESEARCH: {
+    label: 'Supply Chain Research',
+    icon: <Search size={18} className="text-blue-400" />,
+    color: '#60a5fa',
+    ringColor: 'border-blue-500/30 bg-blue-500/10',
+    summary: '4 suppliers depend on the affected Singapore transshipment corridor.',
+  },
+  IMPACT: {
+    label: 'Impact Tracing',
+    icon: <Network size={18} className="text-amber-400" />,
+    color: '#f59e0b',
+    ringColor: 'border-amber-500/30 bg-amber-500/10',
+    summary: '7 materials and Frankfurt manufacturing plant (70% cap) exposed.',
+  },
+  FINANCE_ESG: {
+    label: 'Finance & ESG Agent',
+    icon: <TrendingDown size={18} className="text-indigo-400" />,
+    color: '#818cf8',
+    ringColor: 'border-indigo-500/30 bg-indigo-500/10',
+    summary: 'Max modeled exposure: $28.3M. Air freight adds +340% Scope-3 CO2.',
+  },
+  RECOVERY: {
+    label: 'Recovery Strategy',
+    icon: <ShieldCheck size={18} className="text-emerald-400" />,
+    color: '#34d399',
+    ringColor: 'border-emerald-500/30 bg-emerald-500/10',
+    summary: '3 feasible recovery strategies generated and ranked by SLA risk.',
+  },
+};
+
+const SATELLITE_AGENTS: AgentType[] = [
+  'EVENT',
+  'RESEARCH',
+  'IMPACT',
+  'FINANCE_ESG',
+  'RECOVERY',
+];
+
+export default function AgentSwarmPage() {
+  const navigate = useNavigate();
+  const { disruptionId } = useParams<{ disruptionId?: string }>();
+  const activeDisruptionId = disruptionId || 'DISR-SG-2026-001';
+  const [activities, setActivities] = useState<AgentActivity[]>(MOCK_AGENT_ACTIVITIES);
+  const [selectedAgentType, setSelectedAgentType] = useState<AgentType>('ORCHESTRATOR');
+
+  // Sequential Orchestration Simulation State
+  const [isSimulatingSequence, setIsSimulatingSequence] = useState(false);
+  const [agentStatuses, setAgentStatuses] = useState<Record<AgentType, AgentStatusStage>>({
+    ORCHESTRATOR: 'COMPLETE',
+    EVENT: 'COMPLETE',
+    RESEARCH: 'COMPLETE',
+    IMPACT: 'COMPLETE',
+    FINANCE_ESG: 'COMPLETE',
+    RECOVERY: 'COMPLETE',
+  });
+  const [orchestratorConverged, setOrchestratorConverged] = useState(true);
+
+  useEffect(() => {
+    fetchAgentActivities(activeDisruptionId).then((data) => {
+      if (data?.length) {
+        setActivities(data);
+      }
+    });
+  }, [activeDisruptionId]);
+
+  function runSequentialOrchestration() {
+    setIsSimulatingSequence(true);
+    setOrchestratorConverged(false);
+
+    // Initial state: Event analysing, others waiting
+    setAgentStatuses({
+      EVENT: 'ANALYSING',
+      RESEARCH: 'WAITING',
+      IMPACT: 'WAITING',
+      FINANCE_ESG: 'WAITING',
+      RECOVERY: 'WAITING',
+      ORCHESTRATOR: 'WAITING',
+    });
+    setSelectedAgentType('EVENT');
+
+    // Step 1: Event complete -> Research analysing
+    setTimeout(() => {
+      setAgentStatuses((prev) => ({ ...prev, EVENT: 'COMPLETE', RESEARCH: 'ANALYSING' }));
+      setSelectedAgentType('RESEARCH');
+    }, 900);
+
+    // Step 2: Research complete -> Impact analysing
+    setTimeout(() => {
+      setAgentStatuses((prev) => ({ ...prev, RESEARCH: 'COMPLETE', IMPACT: 'ANALYSING' }));
+      setSelectedAgentType('IMPACT');
+    }, 1800);
+
+    // Step 3: Impact complete -> Finance analysing
+    setTimeout(() => {
+      setAgentStatuses((prev) => ({ ...prev, IMPACT: 'COMPLETE', FINANCE_ESG: 'ANALYSING' }));
+      setSelectedAgentType('FINANCE_ESG');
+    }, 2700);
+
+    // Step 4: Finance complete -> Recovery analysing
+    setTimeout(() => {
+      setAgentStatuses((prev) => ({ ...prev, FINANCE_ESG: 'COMPLETE', RECOVERY: 'ANALYSING' }));
+      setSelectedAgentType('RECOVERY');
+    }, 3600);
+
+    // Step 5: Recovery complete -> Orchestrator converging
+    setTimeout(() => {
+      setAgentStatuses((prev) => ({ ...prev, RECOVERY: 'COMPLETE', ORCHESTRATOR: 'ANALYSING' }));
+      setSelectedAgentType('ORCHESTRATOR');
+    }, 4500);
+
+    // Step 6: Full Convergence into Decision Room
+    setTimeout(() => {
+      setAgentStatuses({
+        EVENT: 'COMPLETE',
+        RESEARCH: 'COMPLETE',
+        IMPACT: 'COMPLETE',
+        FINANCE_ESG: 'COMPLETE',
+        RECOVERY: 'COMPLETE',
+        ORCHESTRATOR: 'COMPLETE',
+      });
+      setOrchestratorConverged(true);
+      setIsSimulatingSequence(false);
+    }, 5400);
+  }
+
+  const currentAgentActivity =
+    activities.find((a) => a.agentType === selectedAgentType) || activities[0];
+
+  return (
+    <div className="p-6 space-y-6 max-w-[1700px] mx-auto animate-fade-in">
+      {/* Top Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono tracking-widest text-indigo-400 uppercase font-semibold">
+              CHAINPULSE DECISION ROOM
+            </span>
+            <span className="text-slate-600">/</span>
+            <span className="text-[10px] font-mono text-slate-400 uppercase">SWARM REASONING GRAPH</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-3">
+            Multi-Agent Swarm Intelligence
+            <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              6 Specialized Agents Orchestrated
+            </span>
+          </h1>
+        </div>
+
+        {/* Swarm Sequence Controls */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={runSequentialOrchestration}
+            disabled={isSimulatingSequence}
+            className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-2 shadow-[0_0_16px_rgba(56,189,248,0.3)]"
+          >
+            {isSimulatingSequence ? <Radio size={14} className="animate-spin" /> : <Play size={14} />}
+            <span>{isSimulatingSequence ? 'Orchestrating Agents...' : 'Run Swarm Sequence'}</span>
+          </button>
+          <div className="px-3 py-1.5 rounded-lg bg-[#090f1d] border border-white/[0.06] text-xs font-mono text-slate-400">
+            Runtime: <span className="text-sky-400 font-bold">14.2s Total</span>
+          </div>
+        </div>
+      </div>
+
+      {/* CENTRAL LIVING MULTI-AGENT ORCHESTRATION STAGE */}
+      <div className="rounded-2xl bg-gradient-to-b from-[#090f1f] via-[#070b16] to-[#040711] border border-white/[0.08] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.6)] relative overflow-hidden">
+        <div className="absolute inset-0 cp-telemetry-grid opacity-25 pointer-events-none" />
+
+        <div className="relative z-10 space-y-6">
+          <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+            <span className="uppercase tracking-wider">CENTRAL ORCHESTRATION NETWORK & INFORMATION FLOW</span>
+            <span className="text-sky-400 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
+              {isSimulatingSequence ? 'TRANSMITTING REASONING ARTIFACTS' : 'SWARM CONVERGED'}
+            </span>
+          </div>
+
+          {/* Central Hub & Satellite Agents Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+            {/* Central Orchestrator Node (col-span-4) */}
+            <div
+              onClick={() => setSelectedAgentType('ORCHESTRATOR')}
+              className={`lg:col-span-4 p-6 rounded-2xl cursor-pointer transition-all duration-300 border flex flex-col justify-between relative ${
+                selectedAgentType === 'ORCHESTRATOR'
+                  ? 'bg-sky-500/15 border-sky-400/80 shadow-[0_0_32px_rgba(56,189,248,0.25)] -translate-y-1'
+                  : 'bg-[#090f1e] border-sky-500/30 hover:border-sky-500/50'
+              }`}
+            >
+              <div>
+                <div className="flex items-start justify-between">
+                  <div className="p-3 rounded-xl bg-sky-500/20 border border-sky-500/40 text-sky-400">
+                    <Cpu size={24} />
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold">
+                    {agentStatuses.ORCHESTRATOR}
+                  </span>
+                </div>
+
+                <div className="mt-4">
+                  <span className="text-[10px] font-mono text-sky-400 uppercase tracking-widest font-semibold">
+                    EXECUTIVE HUB
+                  </span>
+                  <h3 className="text-base font-bold text-slate-100 mt-0.5">
+                    ChainPulse Orchestrator
+                  </h3>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    Coordinates specialized agents, evaluates multi-tier constraints, and synthesizes executive decision trade-offs for human authorization.
+                  </p>
+                </div>
+
+                {/* Explicit Telemetry Attributes */}
+                <div className="mt-4 space-y-2 text-[11px] font-mono border-t border-white/[0.06] pt-3">
+                  <div>
+                    <span className="text-slate-500 text-[10px] uppercase block">INPUT (Signals)</span>
+                    <span className="text-slate-300">5 Specialized Agent Artifacts & Constraint Matrices</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-[10px] uppercase block">OUTPUT (Findings)</span>
+                    <span className="text-sky-300 font-semibold">3-Way Strategy Trade-off Envelope (A, B, C)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-400">Swarm Confidence:</span>
+                <span className="text-emerald-400 font-bold">94% (HIGH)</span>
+              </div>
+            </div>
+
+            {/* 5 Satellite Specialized Agents (col-span-8) */}
+            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {SATELLITE_AGENTS.map((type, idx) => {
+                const meta = AGENT_META[type];
+                const status = agentStatuses[type];
+                const isSelected = selectedAgentType === type;
+
+                // Explicit fields per agent
+                const telemetry = (
+                  {
+                    EVENT: {
+                      input: 'AIS Vessel Tracking, Tanjong Pagar berth delay logs, MPA Singapore',
+                      output: 'Port throughput -65%, 847 vessels delayed, 8-12d queue',
+                      confidence: '94% (HIGH)',
+                    },
+                    RESEARCH: {
+                      input: 'Global shipping bills of lading, feeder schedules, port logs',
+                      output: '4 Tier-1/2 suppliers dependent on Singapore transshipment corridor',
+                      confidence: '96% (HIGH)',
+                    },
+                    IMPACT: {
+                      input: 'Multi-tier BOM, plant stock buffers, priority order delivery SLAs',
+                      output: '7 materials constrained, Frankfurt plant throttled (70% cap), 22 orders at risk',
+                      confidence: '91% (HIGH)',
+                    },
+                    FINANCE_ESG: {
+                      input: 'SAP ERP sales contracts, SLA forfeiture penalties, air freight CO2 factor',
+                      output: 'Max exposure $28.3M; Emergency Air Freight adds +340% Scope-3 emissions',
+                      confidence: '95% (HIGH)',
+                    },
+                    RECOVERY: {
+                      input: 'Alternate supplier DB (IN-01), spot air capacity, stock reallocation',
+                      output: '3 ranked recovery strategies with cost-speed-emissions trade-off matrices',
+                      confidence: '93% (HIGH)',
+                    },
+                  } as Record<string, { input: string; output: string; confidence: string }>
+                )[type] || {
+                  input: 'Enterprise data feed',
+                  output: 'Model evaluation',
+                  confidence: '90% (HIGH)',
+                };
+
+                return (
+                  <div
+                    key={type}
+                    onClick={() => setSelectedAgentType(type)}
+                    className={`p-3.5 rounded-xl cursor-pointer transition-all duration-200 border flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-white/[0.08] border-sky-400/80 shadow-[0_0_20px_rgba(56,189,248,0.2)] -translate-y-0.5'
+                        : status === 'ANALYSING'
+                        ? 'bg-sky-500/10 border-sky-400/50 animate-pulse'
+                        : 'bg-[#080d19] border-white/[0.06] hover:border-white/15'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className={`p-2 rounded-lg ${meta.ringColor}`}>{meta.icon}</div>
+                        <span
+                          className={`text-[9px] font-mono px-1.5 py-0.5 rounded border font-semibold ${
+                            status === 'COMPLETE'
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                              : status === 'ANALYSING'
+                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                              : 'bg-white/[0.05] text-slate-500 border-white/[0.08]'
+                          }`}
+                        >
+                          STATUS: {status}
+                        </span>
+                      </div>
+
+                      <div className="mb-2">
+                        <span className="text-[9px] font-mono text-slate-500">STAGE 0{idx + 1}</span>
+                        <h4 className="text-xs font-bold text-slate-200 mt-0.5">{meta.label}</h4>
+                      </div>
+
+                      {/* Explicit Input & Output fields */}
+                      <div className="space-y-1.5 text-[10px] font-mono bg-[#0c1424]/60 p-2 rounded-lg border border-white/[0.03]">
+                        <div>
+                          <span className="text-slate-500 uppercase block text-[8px]">INPUT:</span>
+                          <span className="text-slate-400 line-clamp-1">{telemetry.input}</span>
+                        </div>
+                        <div>
+                          <span className="text-sky-400/80 uppercase block text-[8px]">OUTPUT:</span>
+                          <span className="text-slate-200 line-clamp-2">{telemetry.output}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-2.5 pt-2 border-t border-white/[0.04] text-[10px] font-mono flex items-center justify-between">
+                      <span className="text-slate-500">CONFIDENCE:</span>
+                      <span className="text-emerald-400 font-bold">{telemetry.confidence}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* FINAL DECISION ROOM CONVERGENCE (Visual Payoff) */}
+      {orchestratorConverged && (
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-sky-950/25 via-[#080d19] to-indigo-950/25 border border-sky-400/50 shadow-[0_12px_40px_rgba(0,0,0,0.6)] space-y-5 animate-fade-in">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-400">
+                <Scale size={22} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-sky-400 font-bold">
+                    CHAINPULSE DECISION ROOM
+                  </span>
+                  <span className="text-slate-500">|</span>
+                  <span className="text-[10px] font-mono text-slate-400">FINAL SYNTHESIS</span>
+                </div>
+                <h2 className="text-xl font-bold text-slate-100 tracking-tight">
+                  Executive Recovery Decision Envelope
+                </h2>
+              </div>
+            </div>
+
+            <span className="text-xs font-mono px-3 py-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
+              HUMAN DECISION REQUIRED
+            </span>
+          </div>
+
+          {/* Convergence Metric Columns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
+            <div className="p-3.5 rounded-xl bg-[#0c1424] border border-white/[0.05]">
+              <span className="text-[10px] text-slate-400 uppercase block">Critical Disruption</span>
+              <span className="font-bold text-slate-200 mt-1 block">Singapore Port Congestion</span>
+              <span className="text-[10px] text-slate-500">847 vessels · 35% cap</span>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#0c1424] border border-white/[0.05]">
+              <span className="text-[10px] text-slate-400 uppercase block">Network Impact</span>
+              <span className="font-bold text-amber-400 mt-1 block">4 Suppliers · 7 Materials</span>
+              <span className="text-[10px] text-slate-500">22 orders · 68 factories</span>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#0c1424] border border-white/[0.05]">
+              <span className="text-[10px] text-slate-400 uppercase block">Business Exposure</span>
+              <span className="font-bold text-rose-400 mt-1 block">$28.3M Modeled Max</span>
+              <span className="text-[10px] text-slate-500">Tier-1 contract risk</span>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#0c1424] border border-white/[0.05]">
+              <span className="text-[10px] text-slate-400 uppercase block">Recommended Trade-Off</span>
+              <span className="font-bold text-emerald-400 mt-1 block">Strategy B: Air Freight</span>
+              <span className="text-[10px] text-slate-500">8d · $3.8M · +340% CO2</span>
+            </div>
+          </div>
+
+          {/* TRADE-OFF ENVELOPE: SPEED vs COST vs CARBON vs FEASIBILITY */}
+          <div className="p-4 rounded-xl bg-[#090f1d] border border-white/[0.06] space-y-3">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-sky-400 uppercase tracking-wider font-semibold">
+                MULTI-ATTRIBUTE TRADE-OFF ENVELOPE
+              </span>
+              <span className="text-slate-400 text-[11px]">
+                Trade-off Balance: <strong className="text-slate-200">Speed (Tier-1 SLA) vs Financial Outlay vs Scope-3 Footprint</strong>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
+              {/* Option A */}
+              <div className="p-3 rounded-lg bg-[#0c1424] border border-white/[0.04] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-200">Strategy A: Alternate Supplier</span>
+                  <span className="text-[10px] text-amber-400">STRUCTURAL</span>
+                </div>
+                <div className="space-y-1 text-[11px] text-slate-400">
+                  <div className="flex justify-between"><span>Speed:</span><span className="text-slate-200 font-bold">18 Days</span></div>
+                  <div className="flex justify-between"><span>Cost:</span><span className="text-emerald-400 font-bold">$1.2M</span></div>
+                  <div className="flex justify-between"><span>Carbon:</span><span className="text-emerald-400 font-bold">+12% CO2</span></div>
+                  <div className="flex justify-between"><span>Feasibility:</span><span className="text-slate-200 font-bold">78%</span></div>
+                </div>
+              </div>
+
+              {/* Option B */}
+              <div className="p-3 rounded-lg bg-sky-500/10 border border-sky-400/40 space-y-2 relative">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sky-300">Strategy B: Air Freight Bridge</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-sky-400 text-slate-950 font-bold">FASTEST</span>
+                </div>
+                <div className="space-y-1 text-[11px] text-slate-400">
+                  <div className="flex justify-between"><span>Speed:</span><span className="text-emerald-400 font-bold">8 Days (★)</span></div>
+                  <div className="flex justify-between"><span>Cost:</span><span className="text-rose-400 font-bold">$3.8M (High)</span></div>
+                  <div className="flex justify-between"><span>Carbon:</span><span className="text-rose-400 font-bold">+340% CO2</span></div>
+                  <div className="flex justify-between"><span>Feasibility:</span><span className="text-emerald-400 font-bold">92% (High)</span></div>
+                </div>
+              </div>
+
+              {/* Option C */}
+              <div className="p-3 rounded-lg bg-[#0c1424] border border-white/[0.04] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-200">Strategy C: Reallocation</span>
+                  <span className="text-[10px] text-rose-400">RELATIONSHIP RISK</span>
+                </div>
+                <div className="space-y-1 text-[11px] text-slate-400">
+                  <div className="flex justify-between"><span>Speed:</span><span className="text-emerald-400 font-bold">5 Days (★)</span></div>
+                  <div className="flex justify-between"><span>Cost:</span><span className="text-emerald-400 font-bold">$0.4M (Low)</span></div>
+                  <div className="flex justify-between"><span>Carbon:</span><span className="text-emerald-400 font-bold">+2% CO2</span></div>
+                  <div className="flex justify-between"><span>Feasibility:</span><span className="text-amber-400 font-bold">65% (Risk)</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Synthesized Executive Summary */}
+          <div className="p-4 rounded-xl bg-[#090f1d] border border-white/[0.06] space-y-1.5">
+            <span className="text-[10px] font-mono text-sky-400 uppercase tracking-wider font-semibold">
+              ORCHESTRATOR REASONING SYNTHESIS
+            </span>
+            <p className="text-xs text-slate-200 leading-relaxed font-sans">
+              "Emergency Air Freight provides the fastest modeled recovery under current constraints (8 days for Tier-1 customer commitments), while introducing the highest cost ($3.8M) and transport-emissions trade-off (+340% Scope-3). Alternate Supplier Activation (Strategy A) provides lower structural cost ($1.2M) over an 18-day horizon. Operations leadership must commit the authorized strategy."
+            </p>
+          </div>
+
+          {/* Decision Payoff CTA */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <span className="text-xs font-mono text-slate-400">
+              Audit status: <span className="text-emerald-400 font-semibold">All 6 agents synchronized</span>
+            </span>
+
+            <button
+              onClick={() => navigate('/recovery')}
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(56,189,248,0.4)]"
+            >
+              <span>Review Recovery Strategies in Decision Room</span>
+              <ArrowRight size={15} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Selected Agent Telemetry Dossier */}
+      {currentAgentActivity && (
+        <div className="rounded-2xl bg-[#080d19] border border-white/[0.08] p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div className="flex items-center gap-2">
+              <FileText size={15} className="text-sky-400" />
+              <h3 className="text-xs font-mono font-bold text-slate-200 uppercase tracking-wider">
+                {currentAgentActivity.agentName} Dossier
+              </h3>
+            </div>
+            <span className="text-xs font-mono text-emerald-400 font-bold">
+              {currentAgentActivity.confidencePct}% Confidence Rating
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div className="p-3.5 rounded-xl bg-[#0c1424] border border-white/[0.04] space-y-1">
+              <span className="text-[10px] font-mono text-slate-400 uppercase">Reasoning Summary</span>
+              <p className="text-slate-300 leading-relaxed font-sans">{currentAgentActivity.reasoning}</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#0c1424] border border-white/[0.04] space-y-2">
+              <span className="text-[10px] font-mono text-slate-400 uppercase">Verified Evidence Citations</span>
+              <ul className="space-y-1 text-slate-300">
+                {currentAgentActivity.evidenceUsed.map((ev, i) => (
+                  <li key={i} className="flex items-center gap-2 text-[11px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400 flex-shrink-0" />
+                    <span>{ev}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

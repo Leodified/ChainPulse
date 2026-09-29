@@ -1,0 +1,66 @@
+# ChainPulse Backend - Docker Compose
+# All credentials read from .env file - NEVER hardcoded here.
+# Usage: Copy .env.example to .env, fill values, then: docker-compose up -d
+
+version: "3.9"
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 15 Database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: chainpulse_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-chainpulse_db}
+      POSTGRES_USER: ${POSTGRES_USER:-chainpulse_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chainpulse_user} -d ${POSTGRES_DB:-chainpulse_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chainpulse_net
+
+  # ---------------------------------------------------------------------------
+  # ChainPulse FastAPI Backend
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: chainpulse_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Override DATABASE_URL to point to the postgres service container
+      DATABASE_URL: postgresql://${POSTGRES_USER:-chainpulse_user}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}@postgres:5432/${POSTGRES_DB:-chainpulse_db}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - chainpulse_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  chainpulse_net:
+    driver: bridge
