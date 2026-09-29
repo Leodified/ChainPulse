@@ -345,7 +345,7 @@ export default function AgentSwarmPage() {
             </div>
 
             <div className="text-[10px] text-slate-400">
-              Operator Sign-off: <strong className="text-slate-200">{learningHubProfile.studentName}</strong> (SAP Certified)
+              Operator Sign-off: <strong className="text-slate-200">{learningHubProfile.studentName}</strong> (Demo Student Profile)
             </div>
           </div>
 

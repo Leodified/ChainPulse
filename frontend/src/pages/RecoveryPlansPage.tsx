@@ -509,13 +509,13 @@ export default function RecoveryPlansPage() {
           {/* Decision Owner & ERP Context Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
             <div className="p-3 rounded-xl bg-[#0c1424] border border-white/[0.04] space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase block font-semibold">DECISION OWNER & CREDENTIAL</span>
+              <span className="text-[10px] text-slate-500 uppercase block font-semibold">DEMO DECISION OWNER CONTEXT</span>
               <span className="font-bold text-slate-200">{learningHubProfile.studentName}</span>
-              <span className="text-[10px] text-sky-400 block font-mono">
-                Verified: {learningHubProfile.institution}
+              <span className="text-[10px] text-amber-300 block font-mono">
+                Simulated Profile: {learningHubProfile.institution}
               </span>
-              <span className="text-[9px] text-emerald-400 block">
-                ✓ {learningHubProfile.certification} ({learningHubProfile.certificationId})
+              <span className="text-[9px] text-slate-400 block">
+                Simulated Credential: {learningHubProfile.certification}
               </span>
             </div>
             <div className="p-3 rounded-xl bg-[#0c1424] border border-white/[0.04] space-y-1">

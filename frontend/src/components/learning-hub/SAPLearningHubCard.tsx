@@ -40,22 +40,22 @@ export function SAPLearningHubCard() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1.5">
-            <StatusBeacon variant="success" size="sm" />
-            OPERATOR QUALIFIED FOR SIGN-OFF
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold flex items-center gap-1.5">
+            <StatusBeacon variant="warning" size="sm" />
+            DEMO / SIMULATED STUDENT CONTEXT
           </span>
         </div>
       </div>
 
-      {/* Verified Student Operator Dossier */}
+      {/* Demo Student Operator Dossier */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
         <div className="p-4 rounded-xl bg-[#080e1c] border border-white/[0.06] space-y-3">
           <div className="flex items-center justify-between border-b border-white/[0.05] pb-2">
             <span className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1.5">
               <Award size={13} className="text-amber-400" />
-              Verified Student Operator Profile
+              Demo / Simulated Student Profile
             </span>
-            <span className="text-[10px] text-emerald-400 font-bold">✓ Active Verification</span>
+            <span className="text-[10px] text-amber-400 font-bold">SIMULATED CREDENTIAL (DEMO)</span>
           </div>
 
           <div className="space-y-1.5">

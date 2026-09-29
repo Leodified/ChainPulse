@@ -147,7 +147,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
                   'HUMAN_APPROVAL_REQUESTED',
                   'governance:firewall',
                   'PLAN-CP-2026-0920-001',
-                  'Hard Gate Triggered: Awaiting cryptographic sign-off from verified Operations Director (Sarah Chen).'
+                  'Hard Gate Triggered: Awaiting sign-off from authorized Operations Director (Sarah Chen - Demo Profile).'
                 );
                 setIsRunningDemo(false);
               }, 1200);
@@ -169,7 +169,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       'HUMAN_APPROVAL_GRANTED',
       `user:${learningHubProfile.studentName} (${learningHubProfile.studentId})`,
       'PLAN-CP-2026-0920-001',
-      `Authorization granted by Sarah Chen. Operator credentials verified via SAP Learning Hub, student edition (${learningHubProfile.certificationId}).`
+      `Authorization granted by Sarah Chen. Operator profile referenced from SAP Learning Hub student edition demo context (${learningHubProfile.certificationId}).`
     );
 
     // Step 9: Route Activated (Green / Active)
